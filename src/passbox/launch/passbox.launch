@@ -1,5 +1,10 @@
 <?xml version="1.0"?>
 <launch>
     <!-- Passbox Action Server Launch File -->
-    <node pkg="passbox" type="passbox_server.py" name="passbox_action_server" output="screen"></node>
+    <arg name="path_offset_x" default="$(env PATH_OFFSET_PASSBOX_X)" />
+    <arg name="path_offset_y" default="$(env PATH_OFFSET_PASSBOX_Y)" />
+    <node pkg="passbox" type="passbox_server.py" name="passbox_action_server" output="screen"
+        args="--config_path $(find amr_config)/cfg" />
+        <param name="path_offset_x" value="$(arg path_offset_x)" />
+        <param name="path_offset_y" value="$(arg path_offset_y)" />
 </launch>

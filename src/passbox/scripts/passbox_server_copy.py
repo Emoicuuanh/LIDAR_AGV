@@ -356,7 +356,7 @@ class PassboxAction(object):
 
         # Path offsets (dùng bởi agv_offset trong execute_cb)
         self.path_offset_x = rospy.get_param("path_offset_x", 0.0)
-        self.path_offset_y = rospy.get_param("path_offset_y", 0.0)
+        self.path_offset_y = rospy.get_param("path_offset_y", -0.2)
 
         # Path/hub geometry
         self.path_angle = None
