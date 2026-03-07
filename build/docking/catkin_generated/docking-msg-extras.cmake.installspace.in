@@ -1,0 +1,2 @@
+set(docking_MESSAGE_FILES "msg/Line.msg;msg/LineArray.msg;msg/Cluster.msg;msg/ClusterArray.msg;msg/BoundingBox.msg;msg/Dock.msg;msg/MinMaxPoint.msg;msg/ICP.msg;msg/LineOfSight.msg;msg/Plan.msg;msg/DockingAction.msg;msg/DockingActionGoal.msg;msg/DockingActionResult.msg;msg/DockingActionFeedback.msg;msg/DockingGoal.msg;msg/DockingResult.msg;msg/DockingFeedback.msg")
+set(docking_SERVICE_FILES "srv/DockService.srv")

@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/install
+
+Name: qr_localization
+Description: Description of qr_localization
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: geometry_msgs nav_msgs std_msgs roscpp rospy agv_msgs

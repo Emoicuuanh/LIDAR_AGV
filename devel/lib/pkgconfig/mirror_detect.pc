@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/devel
+
+Name: mirror_detect
+Description: Description of mirror_detect
+Version: 0.0.0
+Cflags: -I/home/mkac/mav_ws/devel/include -I/home/mkac/mav_ws/src/mirror_detect/include
+Libs: -L${prefix}/lib -lmirror_detect
+Requires: dynamic_reconfigure laser_geometry roscpp rospy pcl_conversions pcl_ros message_runtime actionlib_msgs

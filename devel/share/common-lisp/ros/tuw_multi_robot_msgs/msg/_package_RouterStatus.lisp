@@ -1,0 +1,24 @@
+(cl:in-package tuw_multi_robot_msgs-msg)
+(cl:export '(ID-VAL
+          ID
+          SUCCESS-VAL
+          SUCCESS
+          CURRENT_PLANNING_ROBOT-VAL
+          CURRENT_PLANNING_ROBOT
+          ACTIVE_ROBOTS-VAL
+          ACTIVE_ROBOTS
+          MISSING_ROBOTS-VAL
+          MISSING_ROBOTS
+          DURATION-VAL
+          DURATION
+          OVERALL_PATH_LENGTH-VAL
+          OVERALL_PATH_LENGTH
+          LONGEST_PATH_LENGTH-VAL
+          LONGEST_PATH_LENGTH
+          PRIORITY_SCHEDULING_ATTEMPTS-VAL
+          PRIORITY_SCHEDULING_ATTEMPTS
+          SPEED_SCHEDULING_ATTEMPTS-VAL
+          SPEED_SCHEDULING_ATTEMPTS
+          ERROR_CODE-VAL
+          ERROR_CODE
+))

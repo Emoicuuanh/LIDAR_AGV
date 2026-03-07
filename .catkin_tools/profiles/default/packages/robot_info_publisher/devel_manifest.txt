@@ -1,0 +1,5 @@
+traffic_control/traffic_control/robot_info_publisher
+/home/mkac/mav_ws/devel/.private/robot_info_publisher/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/robot_info_publisher/share/robot_info_publisher/cmake/robot_info_publisherConfig.cmake /home/mkac/mav_ws/devel/share/robot_info_publisher/cmake/robot_info_publisherConfig.cmake
+/home/mkac/mav_ws/devel/.private/robot_info_publisher/share/robot_info_publisher/cmake/robot_info_publisherConfig-version.cmake /home/mkac/mav_ws/devel/share/robot_info_publisher/cmake/robot_info_publisherConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/robot_info_publisher/lib/pkgconfig/robot_info_publisher.pc /home/mkac/mav_ws/devel/lib/pkgconfig/robot_info_publisher.pc

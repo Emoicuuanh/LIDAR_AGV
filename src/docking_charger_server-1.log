@@ -1,0 +1,906 @@
+[rospy.client][INFO] 2026-02-26 17:31:25,411: init_node, name[/docking_charger_server], pid[81752]
+[xmlrpc][INFO] 2026-02-26 17:31:25,412: XML-RPC server binding to 127.0.0.1:0
+[xmlrpc][INFO] 2026-02-26 17:31:25,412: Started XML-RPC server [http://localhost:34331/]
+[rospy.init][INFO] 2026-02-26 17:31:25,412: ROS Slave URI: [http://localhost:34331/]
+[rospy.impl.masterslave][INFO] 2026-02-26 17:31:25,412: _ready: http://localhost:34331/
+[rospy.registration][INFO] 2026-02-26 17:31:25,413: Registering with master node http://localhost:11311
+[xmlrpc][INFO] 2026-02-26 17:31:25,413: xml rpc node: starting XML-RPC server
+[rospy.init][INFO] 2026-02-26 17:31:25,513: registered with master
+[rospy.rosout][INFO] 2026-02-26 17:31:25,513: initializing /rosout core topic
+[rospy.rosout][INFO] 2026-02-26 17:31:25,515: connected to core topic /rosout
+[rospy.simtime][INFO] 2026-02-26 17:31:25,516: /use_sim_time is not set, will not subscribe to simulated time [/clock] topic
+[rosout][INFO] 2026-02-26 17:31:25,517: Init node /docking_charger_server
+[rospy.internal][INFO] 2026-02-26 17:31:25,523: topic[/tf] adding connection to [http://localhost:36115/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,528: topic[/tf] adding connection to [http://localhost:34289/], count 1
+[rospy.internal][INFO] 2026-02-26 17:31:25,528: topic[/tf] adding connection to [http://localhost:39845/], count 1
+[rospy.internal][INFO] 2026-02-26 17:31:25,532: topic[/tf_static] adding connection to [http://localhost:35113/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,532: topic[/tf] adding connection to [http://localhost:40239/], count 2
+[rospy.internal][INFO] 2026-02-26 17:31:25,533: topic[/tf] adding connection to [http://localhost:39103/], count 2
+[rospy.internal][INFO] 2026-02-26 17:31:25,534: topic[/tf_static] adding connection to [http://localhost:33419/], count 1
+[rospy.internal][INFO] 2026-02-26 17:31:25,539: topic[/tf_static] adding connection to [http://localhost:42493/], count 2
+[rospy.internal][INFO] 2026-02-26 17:31:25,539: topic[/tf_static] adding connection to [http://localhost:42209/], count 3
+[rospy.internal][INFO] 2026-02-26 17:31:25,540: topic[/tf_static] adding connection to [http://localhost:38021/], count 4
+[rospy.internal][INFO] 2026-02-26 17:31:25,542: topic[/tf_static] adding connection to [http://localhost:35355/], count 5
+[rospy.internal][INFO] 2026-02-26 17:31:25,545: topic[/tf_static] adding connection to [http://localhost:41237/], count 6
+[rospy.internal][INFO] 2026-02-26 17:31:25,546: topic[/tf_static] adding connection to [http://localhost:33599/], count 6
+[rospy.internal][INFO] 2026-02-26 17:31:25,548: topic[/tf_static] adding connection to [http://localhost:41677/], count 8
+[rospy.internal][INFO] 2026-02-26 17:31:25,549: topic[/tf_static] adding connection to [http://localhost:33255/], count 9
+[rospy.internal][INFO] 2026-02-26 17:31:25,618: topic[/docking_charger_server/goal] adding connection to [http://localhost:35555/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,618: topic[/docking_charger_server/cancel] adding connection to [http://localhost:35555/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,625: topic[/moving_control/status] adding connection to [http://localhost:36015/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,627: topic[/moving_control/result] adding connection to [http://localhost:36015/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,628: topic[/moving_control/feedback] adding connection to [http://localhost:36015/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,697: topic[/docking_charger_server/status] adding connection to [/mission_manager], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,699: topic[/docking_charger_server/result] adding connection to [/mission_manager], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,699: topic[/docking_charger_server/feedback] adding connection to [/mission_manager], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,700: topic[/moving_control/goal] adding connection to [/moving_control], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,700: topic[/moving_control/cancel] adding connection to [/moving_control], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,717: topic[/lidar_info] adding connection to [http://localhost:46027/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,719: topic[/odom] adding connection to [http://localhost:36115/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,722: topic[/moving_control/module_status] adding connection to [http://localhost:36015/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,723: topic[/robot_pose] adding connection to [http://localhost:42049/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,750: topic[/move_base/NeoLocalPlanner/parameter_descriptions] adding connection to [http://localhost:45989/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,751: topic[/move_base/NeoLocalPlanner/parameter_updates] adding connection to [http://localhost:45989/], count 0
+[rosout][INFO] 2026-02-26 17:31:25,751: hub_service: is running
+[rospy.internal][INFO] 2026-02-26 17:31:25,758: topic[/docking_charger_server/run_pause_req] adding connection to [http://localhost:35555/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,762: topic[/docking_charger_server/reset_error] adding connection to [http://localhost:35555/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,762: topic[/request_start_mission] adding connection to [http://localhost:34357/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,762: topic[/request_start_mission] adding connection to [http://localhost:39339/], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,764: topic[/request_start_mission] adding connection to [http://localhost:46027/], count 2
+[rospy.internal][INFO] 2026-02-26 17:31:25,792: topic[/rosout] adding connection to [/rosout], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,802: topic[/safety_job_name] adding connection to [/set_safety_by_name], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,803: topic[/safety_job_name] adding connection to [/joystick_manager], count 1
+[rospy.internal][INFO] 2026-02-26 17:31:25,805: topic[/docking_charger_server/module_status] adding connection to [/control_system], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,806: topic[/safety_job_name] adding connection to [/moving_control], count 2
+[rospy.internal][INFO] 2026-02-26 17:31:25,807: topic[/moving_control/run_pause_req] adding connection to [/moving_control], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,808: topic[/moving_control/reset_error] adding connection to [/moving_control], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:25,998: topic[/docking/perform_detection] adding connection to [/detection_node], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:26,001: topic[/cmd_vel] adding connection to [/qr_localization], count 0
+[rospy.internal][INFO] 2026-02-26 17:31:26,002: topic[/cmd_vel] adding connection to [/auto_mux_nodelet], count 1
+[rosout][WARNING] 2026-02-26 17:32:06,617: {'params': {'position': {'isLowSpeed': False, 'is_reserve': False, 'layer': 0, 'next': ['pose_17707992025'], 'orientation': {'w': 1, 'x': 0, 'y': 0, 'z': 0}, 'position': {'x': 61.822802000810256, 'y': 51.67207427495814}, 'properties': {'offset_x': '0', 'offset_y': '-0.02', 'rotate_goal': True}, 'radius': 0.17415692683704265, 'road_type': '{"pose_17707992025":{"road_move_type":"lidar"}}'}}, 'name': 'Docking to tape charger', 'type': 'docking_charger', 'next_action_type': 'This is the last action'}
+[rosout][INFO] 2026-02-26 17:32:06,619: USE_DOCKING_BY_MIRROR default: True
+[rosout][WARNING] 2026-02-26 17:32:06,619: Additional offset_x from properties: 0.0
+[rosout][WARNING] 2026-02-26 17:32:06,620: Additional offset_y from properties: -0.02
+[rosout][WARNING] 2026-02-26 17:32:06,621: Final mirror offsets after properties: {'hub': {'x_offset': 0.45, 'y_offset': 0.08, 'comment': 'Hub cách mirror ngược hướng'}, 'waiting': {'x_offset': 0.9, 'y_offset': 0.08, 'comment': 'Waiting cách mirror cùng hướng'}, 'temp': {'x_offset': 0.9, 'y_offset': 0.08, 'comment': 'Temp cách mirror cùng hướng'}}
+[rosout][INFO] 2026-02-26 17:32:06,622: Converted hub pose: (61.823, 51.672) -> (48.352, -16.908)
+[rosout][INFO] 2026-02-26 17:32:06,623: Converted waiting pose: (47.498, -16.801) -> (29.684, -84.534)
+[rosout][WARNING] 2026-02-26 17:32:06,624:  cur_orient docking: -1.8401318877336323
+[rosout][WARNING] 2026-02-26 17:32:06,637: Waiting goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": -0.9391074195492521,
+          "y": 69.76071211059336,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7128930643049628,
+          "w": 0.70127275639788
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:32:06,651: Docking goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": -0.9391074195492521,
+          "y": 69.76071211059336,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7128930643049628,
+          "w": 0.70127275639788
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": 0.21375096460720044,
+          "y": -0.3849580869019116,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7128862539426473,
+          "w": 0.7012796795427767
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:32:06,653: UnDocking goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": 0.21375096460720044,
+          "y": -0.3849580869019116,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7128862539426473,
+          "w": 0.7012796795427767
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": -0.9391074195492521,
+          "y": 69.76071211059336,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7128930643049628,
+          "w": 0.70127275639788
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  },
+  "param_test": {
+    "need_to_wait_receive_new_path": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:32:06,655: Temp goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": -0.9391074195492521,
+          "y": 69.76071211059336,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7128930643049628,
+          "w": 0.70127275639788
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": 0.21375096460720044,
+          "y": -0.3849580869019116,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7128862539426473,
+          "w": 0.7012796795427767
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][INFO] 2026-02-26 17:32:06,668: Action state: NONE -> INIT
+[rosout][INFO] 2026-02-26 17:32:07,033: Action state: INIT -> SEND_GOTO_TEMP_POSE
+[rosout][INFO] 2026-02-26 17:32:07,236: Service call success: True, use_scan_merge: True
+[rosout][WARNING] 2026-02-26 17:32:09,140: position mirror: [-0.23934953502495454, -0.5130618471468447, 0.0]
+[rosout][WARNING] 2026-02-26 17:32:09,146: orient mirror: (0.0, -0.0, 0.22249282071863355)
+[rosout][WARNING] 2026-02-26 17:32:09,154: Waiting goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": 0.6208128999267682,
+          "y": -0.23643830241877356,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.11101709242118724,
+          "w": 0.9938184971061595
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:32:09,161: Docking goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": 0.6208128999267682,
+          "y": -0.23643830241877356,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.11101709242118724,
+          "w": 0.9938184971061595
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": 0.1819052152554573,
+          "y": -0.33573605836758147,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.11101709242118724,
+          "w": 0.9938184971061595
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:32:09,167: UnDocking goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": 0.1819052152554573,
+          "y": -0.33573605836758147,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.11101709242118724,
+          "w": 0.9938184971061595
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": 0.6208128999267682,
+          "y": -0.23643830241877356,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.11101709242118724,
+          "w": 0.9938184971061595
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  },
+  "param_test": {
+    "need_to_wait_receive_new_path": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:32:09,173: Temp goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": 1.062658916381509,
+          "y": -0.24748147648622276,
+          "z": 0.08099999999999999
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7717909673678462,
+          "w": 0.6358763265678351
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": 0.6208128999267682,
+          "y": -0.23643830241877356,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.11101709242118724,
+          "w": 0.9938184971061595
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][INFO] 2026-02-26 17:32:09,227: Service call success: True, use_scan_merge: False
+[rosout][INFO] 2026-02-26 17:32:09,230: Action state: SEND_GOTO_TEMP_POSE -> GOING_TO_TEMP_POSE
+[rosout][INFO] 2026-02-26 17:32:24,563: Action state: GOING_TO_TEMP_POSE -> SEND_GOTO_WAITING
+[rosout][INFO] 2026-02-26 17:32:24,630: Action state: SEND_GOTO_WAITING -> GOING_TO_WAITING
+[rosout][INFO] 2026-02-26 17:32:25,215: Pause request
+[rosout][INFO] 2026-02-26 17:32:25,298: Action state: GOING_TO_WAITING -> PAUSED
+[rosout][INFO] 2026-02-26 17:40:25,056: STOP MISSION
+[rosout][ERROR] 2026-02-26 17:40:25,096: reset_action_req : True
+[rosout][INFO] 2026-02-26 17:40:25,097: /docking_charger_server: Preempted
+[rosout][WARNING] 2026-02-26 17:40:53,637: {'params': {'position': {'isLowSpeed': False, 'is_reserve': False, 'layer': 0, 'next': ['pose_17707992025'], 'orientation': {'w': 1, 'x': 0, 'y': 0, 'z': 0}, 'position': {'x': 61.822802000810256, 'y': 51.67207427495814}, 'properties': {'offset_x': '0', 'offset_y': '-0.02', 'rotate_goal': True}, 'radius': 0.17415692683704265, 'road_type': '{"pose_17707992025":{"road_move_type":"lidar"}}'}}, 'name': 'Docking to tape charger', 'type': 'docking_charger', 'next_action_type': 'This is the last action'}
+[rosout][INFO] 2026-02-26 17:40:53,638: USE_DOCKING_BY_MIRROR default: True
+[rosout][WARNING] 2026-02-26 17:40:53,639: Additional offset_x from properties: 0.0
+[rosout][WARNING] 2026-02-26 17:40:53,640: Additional offset_y from properties: -0.02
+[rosout][WARNING] 2026-02-26 17:40:53,641: Final mirror offsets after properties: {'hub': {'x_offset': 0.45, 'y_offset': 0.08, 'comment': 'Hub cách mirror ngược hướng'}, 'waiting': {'x_offset': 0.9, 'y_offset': 0.08, 'comment': 'Waiting cách mirror cùng hướng'}, 'temp': {'x_offset': 0.9, 'y_offset': 0.08, 'comment': 'Temp cách mirror cùng hướng'}}
+[rosout][INFO] 2026-02-26 17:40:53,641: Converted hub pose: (61.823, 51.672) -> (48.352, -16.908)
+[rosout][INFO] 2026-02-26 17:40:53,642: Converted waiting pose: (47.504, -16.856) -> (29.686, -84.590)
+[rosout][WARNING] 2026-02-26 17:40:53,643:  cur_orient docking: -1.8398943220778332
+[rosout][WARNING] 2026-02-26 17:40:53,665: Waiting goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": -2.9182677414237332,
+          "y": 69.70470831363481,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7230280061464477,
+          "w": 0.690818718860377
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:40:53,676: Docking goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": -2.9182677414237332,
+          "y": 69.70470831363481,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7230280061464477,
+          "w": 0.690818718860377
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": 0.2798222645860875,
+          "y": -0.4322538844114989,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7235938943741674,
+          "w": 0.6902259601206161
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:40:53,678: UnDocking goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": 0.2798222645860875,
+          "y": -0.4322538844114989,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7235938943741674,
+          "w": 0.6902259601206161
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": -2.9182677414237332,
+          "y": 69.70470831363481,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7230280061464477,
+          "w": 0.690818718860377
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  },
+  "param_test": {
+    "need_to_wait_receive_new_path": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:40:53,680: Temp goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": -2.9182677414237332,
+          "y": 69.70470831363481,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7230280061464477,
+          "w": 0.690818718860377
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": 0.2798222645860875,
+          "y": -0.4322538844114989,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.7235938943741674,
+          "w": 0.6902259601206161
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][INFO] 2026-02-26 17:40:53,682: Action state: NONE -> INIT
+[rosout][INFO] 2026-02-26 17:40:54,049: Action state: INIT -> SEND_GOTO_TEMP_POSE
+[rosout][INFO] 2026-02-26 17:40:54,236: Service call success: True, use_scan_merge: True
+[rosout][WARNING] 2026-02-26 17:40:56,538: position mirror: [-0.21429129508066896, -0.5779634618065111, 0.0]
+[rosout][WARNING] 2026-02-26 17:40:56,544: orient mirror: (0.0, -0.0, 0.2788851860539649)
+[rosout][WARNING] 2026-02-26 17:40:56,549: Waiting goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": 0.628912612151239,
+          "y": -0.2532987565660983,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.13899113969353719,
+          "w": 0.9902936246824432
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:40:56,551: Docking goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": 0.628912612151239,
+          "y": -0.2532987565660983,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.13899113969353719,
+          "w": 0.9902936246824432
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": 0.19629929537321641,
+          "y": -0.3771765921393694,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.13899113969353719,
+          "w": 0.9902936246824432
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:40:56,553: UnDocking goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": 0.19629929537321641,
+          "y": -0.3771765921393694,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.13899113969353719,
+          "w": 0.9902936246824432
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": 0.628912612151239,
+          "y": -0.2532987565660983,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.13899113969353719,
+          "w": 0.9902936246824432
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  },
+  "param_test": {
+    "need_to_wait_receive_new_path": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:40:56,554: Temp goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": 1.1009670734943462,
+          "y": -0.21790834856683827,
+          "z": 0.081
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": -0.5806226498506335,
+          "w": 0.8141727939942655
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": 0.628912612151239,
+          "y": -0.2532987565660983,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.13899113969353719,
+          "w": 0.9902936246824432
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][INFO] 2026-02-26 17:40:56,625: Service call success: True, use_scan_merge: False
+[rosout][INFO] 2026-02-26 17:40:56,628: Action state: SEND_GOTO_TEMP_POSE -> GOING_TO_TEMP_POSE
+[rosout][INFO] 2026-02-26 17:41:05,095: Action state: GOING_TO_TEMP_POSE -> SEND_GOTO_WAITING
+[rosout][INFO] 2026-02-26 17:41:05,161: Action state: SEND_GOTO_WAITING -> GOING_TO_WAITING
+[rosout][INFO] 2026-02-26 17:41:09,696: Action state: GOING_TO_WAITING -> SEND_DOCKING_HUB
+[rosout][INFO] 2026-02-26 17:41:09,836: Service call success: True, use_scan_merge: False
+[rosout][WARNING] 2026-02-26 17:41:11,738: position mirror: [-0.21432783957774348, -0.6013072049760219, 0.0]
+[rosout][WARNING] 2026-02-26 17:41:11,739: orient mirror: (0.0, -0.0, 0.2670685162883276)
+[rosout][WARNING] 2026-02-26 17:41:11,740: Waiting goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": 0.6326535648290017,
+          "y": -0.2866287967730159,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.1331377613944242,
+          "w": 0.991097541360527
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:41:11,742: Docking goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": 0.6326535648290017,
+          "y": -0.2866287967730159,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.1331377613944242,
+          "w": 0.991097541360527
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": 0.19860666198720844,
+          "y": -0.4053860539552483,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.1331377613944242,
+          "w": 0.991097541360527
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:41:11,743: UnDocking goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": 0.19860666198720844,
+          "y": -0.4053860539552483,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.1331377613944242,
+          "w": 0.991097541360527
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": 0.6326535648290017,
+          "y": -0.2866287967730159,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.1331377613944242,
+          "w": 0.991097541360527
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  },
+  "param_test": {
+    "need_to_wait_receive_new_path": true
+  }
+}
+[rosout][WARNING] 2026-02-26 17:41:11,745: Temp goal position:
+{
+  "waypoints": [
+    {
+      "name": "Pose_1",
+      "position": {
+        "position": {
+          "x": 0.6284954640182512,
+          "y": -0.25300913123742075,
+          "z": 0.08100000000000002
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.15762953505385607,
+          "w": 0.9874983188232298
+        }
+      }
+    },
+    {
+      "name": "Pose_2",
+      "position": {
+        "position": {
+          "x": 0.6326535648290017,
+          "y": -0.2866287967730159,
+          "z": 0.0
+        },
+        "orientation": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.1331377613944242,
+          "w": 0.991097541360527
+        }
+      }
+    }
+  ],
+  "params": {
+    "only_use_qr": true,
+    "use_mirror": true
+  }
+}
+[rosout][INFO] 2026-02-26 17:41:11,828: Service call success: True, use_scan_merge: False
+[rosout][INFO] 2026-02-26 17:41:12,187: Action state: SEND_DOCKING_HUB -> DOCKING_TO_HUB
+[rosout][INFO] 2026-02-26 17:41:18,055: Action state: DOCKING_TO_HUB -> ROTATE_TO_GOAL_ANGLE
+[rosout][ERROR] 2026-02-26 17:41:18,056: angle path: 0.2670685162883274
+[rosout][ERROR] 2026-02-26 17:41:18,057: angle odom: 0.27316680550575256
+[rosout][ERROR] 2026-02-26 17:41:18,057: angle in hub error 1: -0.006098289217425168
+[rosout][ERROR] 2026-02-26 17:41:18,059: angle in hub error 2: -0.006098289217425168
+[rosout][ERROR] 2026-02-26 17:41:18,059: rotating to goal - result:False
+[rosout][ERROR] 2026-02-26 17:41:18,121: angle path: 0.2670685162883274
+[rosout][ERROR] 2026-02-26 17:41:18,127: angle odom: 0.27319130301475536
+[rosout][ERROR] 2026-02-26 17:41:18,133: angle in hub error 1: -0.0061227867264279645
+[rosout][ERROR] 2026-02-26 17:41:18,135: angle in hub error 2: -0.0061227867264279645
+[rosout][ERROR] 2026-02-26 17:41:18,137: rotating to goal - result:False
+[rosout][ERROR] 2026-02-26 17:41:18,187: angle path: 0.2670685162883274
+[rosout][ERROR] 2026-02-26 17:41:18,188: angle odom: 0.273215800523758
+[rosout][ERROR] 2026-02-26 17:41:18,189: angle in hub error 1: -0.0061472842354305945
+[rosout][ERROR] 2026-02-26 17:41:18,190: angle in hub error 2: -0.0061472842354305945
+[rosout][ERROR] 2026-02-26 17:41:18,191: rotating to goal - result:False
+[rosout][ERROR] 2026-02-26 17:41:18,254: angle path: 0.2670685162883274
+[rosout][ERROR] 2026-02-26 17:41:18,255: angle odom: 0.27260363101959234
+[rosout][ERROR] 2026-02-26 17:41:18,256: angle in hub error 1: -0.005535114731264945
+[rosout][ERROR] 2026-02-26 17:41:18,256: angle in hub error 2: -0.005535114731264945
+[rosout][ERROR] 2026-02-26 17:41:18,257: rotating to goal - result:False
+[rosout][ERROR] 2026-02-26 17:41:18,320: angle path: 0.2670685162883274
+[rosout][ERROR] 2026-02-26 17:41:18,321: angle odom: 0.27177113294601446
+[rosout][ERROR] 2026-02-26 17:41:18,322: angle in hub error 1: -0.004702616657687064
+[rosout][ERROR] 2026-02-26 17:41:18,323: angle in hub error 2: -0.004702616657687064
+[rosout][ERROR] 2026-02-26 17:41:18,324: rotating to goal - result:False
+[rosout][ERROR] 2026-02-26 17:41:18,387: angle path: 0.2670685162883274
+[rosout][ERROR] 2026-02-26 17:41:18,388: angle odom: 0.270350992679596
+[rosout][ERROR] 2026-02-26 17:41:18,389: angle in hub error 1: -0.0032824763912686072
+[rosout][ERROR] 2026-02-26 17:41:18,390: angle in hub error 2: -0.0032824763912686072
+[rosout][ERROR] 2026-02-26 17:41:18,391: rotating to goal - result:False
+[rosout][ERROR] 2026-02-26 17:41:18,455: angle path: 0.2670685162883274
+[rosout][ERROR] 2026-02-26 17:41:18,459: angle odom: 0.26966539025306707
+[rosout][ERROR] 2026-02-26 17:41:18,462: angle in hub error 1: -0.0025968739647396766
+[rosout][ERROR] 2026-02-26 17:41:18,463: angle in hub error 2: -0.0025968739647396766
+[rosout][ERROR] 2026-02-26 17:41:18,464: rotating to goal - result:False
+[rosout][ERROR] 2026-02-26 17:41:18,521: angle path: 0.2670685162883274
+[rosout][ERROR] 2026-02-26 17:41:18,523: angle odom: 0.26814728975296026
+[rosout][ERROR] 2026-02-26 17:41:18,523: angle in hub error 1: -0.001078773464632865
+[rosout][ERROR] 2026-02-26 17:41:18,524: angle in hub error 2: -0.001078773464632865
+[rosout][ERROR] 2026-02-26 17:41:18,525: rotating to goal - result:False
+[rosout][ERROR] 2026-02-26 17:41:18,587: angle path: 0.2670685162883274
+[rosout][ERROR] 2026-02-26 17:41:18,588: angle odom: 0.26714339852333063
+[rosout][ERROR] 2026-02-26 17:41:18,589: angle in hub error 1: -7.488223500323743e-05
+[rosout][ERROR] 2026-02-26 17:41:18,590: angle in hub error 2: -7.488223500323743e-05
+[rosout][INFO] 2026-02-26 17:41:18,654: Action state: ROTATE_TO_GOAL_ANGLE -> DONE
+[rosout][INFO] 2026-02-26 17:41:20,012: /docking_charger_server: Succeeded

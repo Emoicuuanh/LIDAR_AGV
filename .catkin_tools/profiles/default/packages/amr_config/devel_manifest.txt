@@ -1,0 +1,5 @@
+amr_config
+/home/mkac/mav_ws/devel/.private/amr_config/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/amr_config/share/amr_config/cmake/amr_configConfig-version.cmake /home/mkac/mav_ws/devel/share/amr_config/cmake/amr_configConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/amr_config/share/amr_config/cmake/amr_configConfig.cmake /home/mkac/mav_ws/devel/share/amr_config/cmake/amr_configConfig.cmake
+/home/mkac/mav_ws/devel/.private/amr_config/lib/pkgconfig/amr_config.pc /home/mkac/mav_ws/devel/lib/pkgconfig/amr_config.pc

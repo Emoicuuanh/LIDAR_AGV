@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/devel
+
+Name: agv_common_library
+Description: Description of agv_common_library
+Version: 0.0.0
+Cflags: -I/home/mkac/mav_ws/src/agv_common_library/include
+Libs: -L${prefix}/lib -lagv_common_library
+Requires: roscpp std_stamped_msgs tf

@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/devel
+
+Name: scan_merge_safety
+Description: Description of scan_merge_safety
+Version: 1.0.7
+Cflags: -I/home/mkac/mav_ws/devel/include
+Libs: -L${prefix}/lib 
+Requires: 

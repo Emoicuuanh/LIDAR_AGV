@@ -1,0 +1,5 @@
+ros_arduino_bridge/ros_arduino_firmware
+/home/mkac/mav_ws/devel/.private/ros_arduino_firmware/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/ros_arduino_firmware/share/ros_arduino_firmware/cmake/ros_arduino_firmwareConfig.cmake /home/mkac/mav_ws/devel/share/ros_arduino_firmware/cmake/ros_arduino_firmwareConfig.cmake
+/home/mkac/mav_ws/devel/.private/ros_arduino_firmware/share/ros_arduino_firmware/cmake/ros_arduino_firmwareConfig-version.cmake /home/mkac/mav_ws/devel/share/ros_arduino_firmware/cmake/ros_arduino_firmwareConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/ros_arduino_firmware/lib/pkgconfig/ros_arduino_firmware.pc /home/mkac/mav_ws/devel/lib/pkgconfig/ros_arduino_firmware.pc

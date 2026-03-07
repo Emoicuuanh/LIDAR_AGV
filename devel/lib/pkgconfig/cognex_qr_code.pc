@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/devel
+
+Name: cognex_qr_code
+Description: Description of cognex_qr_code
+Version: 0.0.0
+Cflags: -I/home/mkac/mav_ws/devel/include
+Libs: -L${prefix}/lib 
+Requires: 

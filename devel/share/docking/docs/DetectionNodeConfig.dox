@@ -1,0 +1,47 @@
+\subsubsection parameters ROS parameters
+
+Reads and maintains the following parameters on the ROS server
+
+- \b "~dock_filepath" : \b [str] Filepath of dock target pointcloud min: , default: , max: 
+- \b "~world_frame" : \b [str] Name of world frame min: , default: world, max: 
+- \b "~robot_frame" : \b [str] Name of robot frame min: , default: base_link, max: 
+- \b "~cloud1_frame" : \b [str] Name of cloud frame min: , default: cloud_1, max: 
+- \b "~cloud1_topic" : \b [str] Name of cloud topic min: , default: cloud_1, max: 
+- \b "~cloud2_frame" : \b [str] Name of cloud frame min: , default: cloud_2, max: 
+- \b "~cloud2_topic" : \b [str] Name of cloud topic min: , default: cloud_2, max: 
+- \b "~cloud_merger_frame" : \b [str] Name of cloud frame min: , default: cloud_map, max: 
+- \b "~cloud_merger_topic" : \b [str] Name of cloud topic min: , default: cloud_map, max: 
+- \b "~laser1_frame" : \b [str] Name of laser frame min: , default: base_laser_link, max: 
+- \b "~laser2_frame" : \b [str] Name of laser frame min: , default: base_laser_link, max: 
+- \b "~laser_merger_frame" : \b [str] Name of laser frame min: , default: base_laser_link, max: 
+- \b "~laser1_topic" : \b [str] Name of laser topic min: , default: scan_1, max: 
+- \b "~laser2_topic" : \b [str] Name of laser topic min: , default: scan_2, max: 
+- \b "~laser_merger_topic" : \b [str] Name of laser topic min: , default: scan_map, max: 
+- \b "~RS_max_iter" : \b [int] Số vòng lặp tính toán min: 0, default: 250, max: 10000
+- \b "~RS_min_inliers" : \b [int] Số điểm tối thiểu để coi là 1 đoạn thẳng min: 0, default: 3, max: 50
+- \b "~RS_dist_thresh" : \b [double] Khoảng cách giữa các điểm theo chiều vuông góc với đoạn thẳng nhỏ hơn param này thì coi là đoạn thẳng (noise) min: 0.0, default: 0.02, max: 1.0
+- \b "~RANSAC_on_clusters" : \b [bool] Perform RANSAC after Clustering Points min: False, default: True, max: True
+- \b "~Voxel_leaf_size" : \b [double] Leaf Size for Voxel Grid min: 0.0, default: 0.001, max: 1.0
+- \b "~EC_cluster_tolerance" : \b [double] Khoảng cách tối đa giữa các điểm có thể coi là 1 cụm (m) min: 0.0, default: 0.08, max: 0.5
+- \b "~EC_min_size" : \b [int] Số lượng điểm tối thiểu trong 1 cụm min: 0, default: 10, max: 20
+- \b "~EC_max_size" : \b [int] Số lượng điểm tối đa trong 1 cụm min: 0, default: 250, max: 1000
+- \b "~detect_type" : \b [int] Detect marker type min: 0, default: 0, max: 2
+- \b "~dock_offset_x" : \b [double] Dock X offset (m) min: -2.0, default: 0.05, max: 2.0
+- \b "~dock_offset_y" : \b [double] Dock Y offset (m) min: -2.0, default: 0.05, max: 2.0
+- \b "~dock_offset_yaw" : \b [double] Dock Yaw offset (radians) min: -3.14159, default: 0.139626, max: 3.14159
+- \b "~max_dock_distance" : \b [double] Maximum dock distance (m) min: 0.0, default: 0.5, max: 5.0
+- \b "~ICP_min_score" : \b [double] ICP Fitness Score Threshold min: 0.0, default: 0.001, max: 0.2
+- \b "~ICP_max_corres_dist" : \b [double] The maximum distance threshold between two correspondent points min: 0.001, default: 0.1, max: 1.0
+- \b "~ICP_max_iter" : \b [int] Max iterations min: 1, default: 100, max: 1000
+- \b "~ICP_max_transl_eps" : \b [double] Max transformation translation epsilon (diff) btwn previous & current estimated min: 1e-09, default: 1e-09, max: 0.001
+- \b "~ICP_max_rot_eps" : \b [double] Max transformation rotation epsilon (diff) btwn previous & current estimated min: 1e-09, default: 1e-09, max: 0.001
+- \b "~ICP_max_eucl_fit_eps" : \b [double] Max Euclidean squared errors min: 0.0, default: 1.0, max: 2.0
+- \b "~BAR_length" : \b [double] Bar marker length (m) min: 0.0, default: 0.2, max: 10.0
+- \b "~BAR_length_tolerance" : \b [double] Bar marker length tolerance (m) min: 0.0, default: 0.2, max: 1.0
+- \b "~BAR_distance" : \b [double] Bar marker distance (m) min: 0.0, default: 0.2, max: 10.0
+- \b "~BAR_distance_tolerance" : \b [double] Bar marker distance tolerance (m) min: 0.0, default: 0.2, max: 1.0
+- \b "~Leg_length" : \b [double] Leg marker length (m) min: 0.0, default: 0.68, max: 10.0
+- \b "~Leg_distance" : \b [double] Leg marker distance (m) min: 0.0, default: 0.85, max: 10.0
+- \b "~Leg_offset" : \b [double] Leg marker offset (m) min: 0.0, default: 0.18, max: 10.0
+- \b "~Leg_tolerance" : \b [double] Leg marker accuracy tolerance (m) min: 0.0, default: 0.1, max: 1.0
+

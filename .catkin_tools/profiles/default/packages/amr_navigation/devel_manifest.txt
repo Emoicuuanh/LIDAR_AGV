@@ -1,0 +1,5 @@
+00.amr/amr_navigation
+/home/mkac/mav_ws/devel/.private/amr_navigation/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/amr_navigation/share/amr_navigation/cmake/amr_navigationConfig-version.cmake /home/mkac/mav_ws/devel/share/amr_navigation/cmake/amr_navigationConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/amr_navigation/share/amr_navigation/cmake/amr_navigationConfig.cmake /home/mkac/mav_ws/devel/share/amr_navigation/cmake/amr_navigationConfig.cmake
+/home/mkac/mav_ws/devel/.private/amr_navigation/lib/pkgconfig/amr_navigation.pc /home/mkac/mav_ws/devel/lib/pkgconfig/amr_navigation.pc

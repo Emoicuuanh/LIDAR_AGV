@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/devel
+
+Name: amr_app
+Description: Description of amr_app
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/install
+
+Name: server
+Description: Description of server
+Version: 0.0.1
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: roscpp tuw_multi_robot_msgs std_msgs

@@ -1,0 +1,2 @@
+set(mission_manager_MESSAGE_FILES "msg/CheckPositionStatusAction.msg;msg/CheckPositionStatusActionGoal.msg;msg/CheckPositionStatusActionResult.msg;msg/CheckPositionStatusActionFeedback.msg;msg/CheckPositionStatusGoal.msg;msg/CheckPositionStatusResult.msg;msg/CheckPositionStatusFeedback.msg;msg/MissionAction.msg;msg/MissionActionGoal.msg;msg/MissionActionResult.msg;msg/MissionActionFeedback.msg;msg/MissionGoal.msg;msg/MissionResult.msg;msg/MissionFeedback.msg")
+set(mission_manager_SERVICE_FILES "")

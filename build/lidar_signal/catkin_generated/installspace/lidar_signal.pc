@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/install
+
+Name: lidar_signal
+Description: Description of lidar_signal
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

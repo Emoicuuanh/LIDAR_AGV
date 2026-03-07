@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/install
+
+Name: agv_position_logger
+Description: Description of agv_position_logger
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

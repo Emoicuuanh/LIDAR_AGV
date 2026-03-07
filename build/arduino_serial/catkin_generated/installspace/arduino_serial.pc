@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/install
+
+Name: arduino_serial
+Description: Description of arduino_serial
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: std_msgs

@@ -1,0 +1,27 @@
+\subsubsection usage Usage
+\verbatim
+<node name="docking" pkg="docking" type="docking">
+  <param name="world_frame" type="str" value="world" />
+  <param name="robot_frame" type="str" value="base_link" />
+  <param name="dock_frame" type="str" value="dock_truth" />
+  <param name="dock_pose_topic" type="str" value="docking/dock_pose" />
+  <param name="dock_gazebo_pose_topic" type="str" value="dock_pose_gazebo" />
+  <param name="use_calculated_pose" type="bool" value="True" />
+  <param name="goal_dist_tolerance" type="double" value="0.03" />
+  <param name="goal_orientation_tolerance" type="double" value="0.1" />
+  <param name="use_steps" type="bool" value="False" />
+  <param name="path_steps" type="int" value="10" />
+  <param name="max_steps" type="int" value="10" />
+  <param name="time_step" type="double" value="0.1" />
+  <param name="v" type="double" value="0.1" />
+  <param name="omega_max" type="double" value="0.3" />
+  <param name="kPhi" type="double" value="20.0" />
+  <param name="kDelta" type="double" value="1.0" />
+  <param name="curvature_max" type="double" value="2.0" />
+  <param name="beta" type="double" value="0.2" />
+  <param name="lambda" type="double" value="2.0" />
+  <param name="entrance_dist" type="double" value="0.3" />
+  <param name="frequency" type="int" value="10" />
+</node>
+\endverbatim
+

@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/devel
+
+Name: ros_entry
+Description: Description of ros_entry
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

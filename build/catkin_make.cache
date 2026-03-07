@@ -1,0 +1,2 @@
+agv_msgs:geometry2/tf2:geometry2/tf2_msgs:geometry2/tf2_py:geometry2/tf2_ros:qr_localization:std_stamped_msgs
+-DCATKIN_DEVEL_PREFIX=/home/mkac/mav_ws/devel -DCMAKE_INSTALL_PREFIX=/home/mkac/mav_ws/install -DCATKIN_WHITELIST_PACKAGES=agv_msgs;qr_localization;std_stamped_msgs;tf2;tf2_msgs;tf2_py;tf2_ros -G Unix Makefiles

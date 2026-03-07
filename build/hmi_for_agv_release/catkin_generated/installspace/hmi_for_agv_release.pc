@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/install
+
+Name: hmi_for_agv_release
+Description: Description of hmi_for_agv_release
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

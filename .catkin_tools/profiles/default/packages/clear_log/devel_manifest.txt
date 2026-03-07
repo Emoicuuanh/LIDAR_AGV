@@ -1,0 +1,5 @@
+clear_log
+/home/mkac/mav_ws/devel/.private/clear_log/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/clear_log/share/clear_log/cmake/clear_logConfig.cmake /home/mkac/mav_ws/devel/share/clear_log/cmake/clear_logConfig.cmake
+/home/mkac/mav_ws/devel/.private/clear_log/share/clear_log/cmake/clear_logConfig-version.cmake /home/mkac/mav_ws/devel/share/clear_log/cmake/clear_logConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/clear_log/lib/pkgconfig/clear_log.pc /home/mkac/mav_ws/devel/lib/pkgconfig/clear_log.pc

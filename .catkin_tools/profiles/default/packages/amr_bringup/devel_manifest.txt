@@ -1,0 +1,5 @@
+00.amr/amr_bringup
+/home/mkac/mav_ws/devel/.private/amr_bringup/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/amr_bringup/share/amr_bringup/cmake/amr_bringupConfig-version.cmake /home/mkac/mav_ws/devel/share/amr_bringup/cmake/amr_bringupConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/amr_bringup/share/amr_bringup/cmake/amr_bringupConfig.cmake /home/mkac/mav_ws/devel/share/amr_bringup/cmake/amr_bringupConfig.cmake
+/home/mkac/mav_ws/devel/.private/amr_bringup/lib/pkgconfig/amr_bringup.pc /home/mkac/mav_ws/devel/lib/pkgconfig/amr_bringup.pc

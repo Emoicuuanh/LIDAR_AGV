@@ -1,0 +1,6 @@
+yujin_ocs/yocs_waypoints_navi
+/home/mkac/mav_ws/devel/.private/yocs_waypoints_navi/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/yocs_waypoints_navi/share/yocs_waypoints_navi/cmake/yocs_waypoints_naviConfig-version.cmake /home/mkac/mav_ws/devel/share/yocs_waypoints_navi/cmake/yocs_waypoints_naviConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/yocs_waypoints_navi/share/yocs_waypoints_navi/cmake/yocs_waypoints_naviConfig.cmake /home/mkac/mav_ws/devel/share/yocs_waypoints_navi/cmake/yocs_waypoints_naviConfig.cmake
+/home/mkac/mav_ws/devel/.private/yocs_waypoints_navi/lib/pkgconfig/yocs_waypoints_navi.pc /home/mkac/mav_ws/devel/lib/pkgconfig/yocs_waypoints_navi.pc
+/home/mkac/mav_ws/devel/.private/yocs_waypoints_navi/lib/yocs_waypoints_navi/yocs_waypoints_navi_node /home/mkac/mav_ws/devel/lib/yocs_waypoints_navi/yocs_waypoints_navi_node

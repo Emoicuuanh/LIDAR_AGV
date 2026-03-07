@@ -1,0 +1,6 @@
+slam_manager
+/home/mkac/mav_ws/devel/.private/slam_manager/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/slam_manager/share/slam_manager/cmake/slam_managerConfig-version.cmake /home/mkac/mav_ws/devel/share/slam_manager/cmake/slam_managerConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/slam_manager/share/slam_manager/cmake/slam_managerConfig.cmake /home/mkac/mav_ws/devel/share/slam_manager/cmake/slam_managerConfig.cmake
+/home/mkac/mav_ws/devel/.private/slam_manager/lib/pkgconfig/slam_manager.pc /home/mkac/mav_ws/devel/lib/pkgconfig/slam_manager.pc
+/home/mkac/mav_ws/devel/.private/slam_manager/lib/slam_manager/slam_manager_map_to_img_node /home/mkac/mav_ws/devel/lib/slam_manager/slam_manager_map_to_img_node

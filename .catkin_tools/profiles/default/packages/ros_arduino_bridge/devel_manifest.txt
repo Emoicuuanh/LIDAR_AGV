@@ -1,0 +1,2 @@
+ros_arduino_bridge/ros_arduino_bridge
+/home/mkac/mav_ws/devel/.private/ros_arduino_bridge/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock

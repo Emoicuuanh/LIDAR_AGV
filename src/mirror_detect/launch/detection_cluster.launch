@@ -1,0 +1,24 @@
+<launch>
+    <arg name="launch_pf_description" default="false"/>
+
+    <param name="/use_sim_time" value="false"/>
+
+    <!-- ======================== LIFT 1 (original - DO NOT CHANGE) ======================== -->
+    <!-- Service: /hub_service -->
+    <node pkg="mirror_detect" type="mirror_detect_node" name="mirror_detect_node"
+          respawn="false" output="screen">
+        <remap from="cloud" to="scan_1"/>
+        <rosparam file="$(find mirror_detect)/config/detection_param_richbeam.yaml" command="load" />
+    </node>
+
+    <!-- ======================== LIFT 2 (new node with namespace) ======================== -->
+    <!-- Service: /mirror_detect_lift2/hub_service -->
+    <group ns="mirror_detect_lift2">
+        <node pkg="mirror_detect" type="mirror_detect_node" name="mirror_detect_node"
+              respawn="false" output="screen">
+            <remap from="cloud" to="/scan_1"/>
+            <rosparam file="$(find mirror_detect)/config/detection_param_lift2.yaml" command="load" />
+        </node>
+    </group>
+
+</launch>

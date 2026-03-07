@@ -1,0 +1,48 @@
+\subsubsection usage Usage
+\verbatim
+<node name="docking" pkg="docking" type="docking">
+  <param name="dock_filepath" type="str" value="" />
+  <param name="world_frame" type="str" value="world" />
+  <param name="robot_frame" type="str" value="base_link" />
+  <param name="cloud1_frame" type="str" value="cloud_1" />
+  <param name="cloud1_topic" type="str" value="cloud_1" />
+  <param name="cloud2_frame" type="str" value="cloud_2" />
+  <param name="cloud2_topic" type="str" value="cloud_2" />
+  <param name="cloud_merger_frame" type="str" value="cloud_map" />
+  <param name="cloud_merger_topic" type="str" value="cloud_map" />
+  <param name="laser1_frame" type="str" value="base_laser_link" />
+  <param name="laser2_frame" type="str" value="base_laser_link" />
+  <param name="laser_merger_frame" type="str" value="base_laser_link" />
+  <param name="laser1_topic" type="str" value="scan_1" />
+  <param name="laser2_topic" type="str" value="scan_2" />
+  <param name="laser_merger_topic" type="str" value="scan_map" />
+  <param name="RS_max_iter" type="int" value="250" />
+  <param name="RS_min_inliers" type="int" value="3" />
+  <param name="RS_dist_thresh" type="double" value="0.02" />
+  <param name="RANSAC_on_clusters" type="bool" value="True" />
+  <param name="Voxel_leaf_size" type="double" value="0.001" />
+  <param name="EC_cluster_tolerance" type="double" value="0.08" />
+  <param name="EC_min_size" type="int" value="10" />
+  <param name="EC_max_size" type="int" value="250" />
+  <param name="detect_type" type="int" value="0" />
+  <param name="dock_offset_x" type="double" value="0.05" />
+  <param name="dock_offset_y" type="double" value="0.05" />
+  <param name="dock_offset_yaw" type="double" value="0.139626" />
+  <param name="max_dock_distance" type="double" value="0.5" />
+  <param name="ICP_min_score" type="double" value="0.001" />
+  <param name="ICP_max_corres_dist" type="double" value="0.1" />
+  <param name="ICP_max_iter" type="int" value="100" />
+  <param name="ICP_max_transl_eps" type="double" value="1e-09" />
+  <param name="ICP_max_rot_eps" type="double" value="1e-09" />
+  <param name="ICP_max_eucl_fit_eps" type="double" value="1.0" />
+  <param name="BAR_length" type="double" value="0.2" />
+  <param name="BAR_length_tolerance" type="double" value="0.2" />
+  <param name="BAR_distance" type="double" value="0.2" />
+  <param name="BAR_distance_tolerance" type="double" value="0.2" />
+  <param name="Leg_length" type="double" value="0.68" />
+  <param name="Leg_distance" type="double" value="0.85" />
+  <param name="Leg_offset" type="double" value="0.18" />
+  <param name="Leg_tolerance" type="double" value="0.1" />
+</node>
+\endverbatim
+

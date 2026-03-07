@@ -1,0 +1,5 @@
+read_battery
+/home/mkac/mav_ws/devel/.private/read_battery/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/read_battery/share/read_battery/cmake/read_batteryConfig-version.cmake /home/mkac/mav_ws/devel/share/read_battery/cmake/read_batteryConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/read_battery/share/read_battery/cmake/read_batteryConfig.cmake /home/mkac/mav_ws/devel/share/read_battery/cmake/read_batteryConfig.cmake
+/home/mkac/mav_ws/devel/.private/read_battery/lib/pkgconfig/read_battery.pc /home/mkac/mav_ws/devel/lib/pkgconfig/read_battery.pc

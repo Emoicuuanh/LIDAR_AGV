@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/install
+
+Name: sound_control
+Description: Description of sound_control
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib 
+Requires: actionlib actionlib_msgs message_generation roscpp rospy std_msgs

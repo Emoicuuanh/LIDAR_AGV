@@ -1,0 +1,5 @@
+arduino_ros
+/home/mkac/mav_ws/devel/.private/arduino_ros/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/arduino_ros/share/arduino_ros/cmake/arduino_rosConfig-version.cmake /home/mkac/mav_ws/devel/share/arduino_ros/cmake/arduino_rosConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/arduino_ros/share/arduino_ros/cmake/arduino_rosConfig.cmake /home/mkac/mav_ws/devel/share/arduino_ros/cmake/arduino_rosConfig.cmake
+/home/mkac/mav_ws/devel/.private/arduino_ros/lib/pkgconfig/arduino_ros.pc /home/mkac/mav_ws/devel/lib/pkgconfig/arduino_ros.pc

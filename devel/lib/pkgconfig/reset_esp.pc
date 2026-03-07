@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/devel
+
+Name: reset_esp
+Description: Description of reset_esp
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

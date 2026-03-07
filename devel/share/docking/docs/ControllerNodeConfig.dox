@@ -1,0 +1,18 @@
+\subsubsection parameters ROS parameters
+
+Reads and maintains the following parameters on the ROS server
+
+- \b "~world_frame" : \b [str] Name of world frame min: , default: world, max: 
+- \b "~robot_frame" : \b [str] Name of robot frame min: , default: base_link, max: 
+- \b "~dock_frame" : \b [str] Name of dock frame min: , default: dock_truth, max: 
+- \b "~cmd_vel_topic" : \b [str] Name of cmd_vel topic min: , default: cmd_vel, max: 
+- \b "~perform_detection" : \b [bool] Activate the detection node min: False, default: True, max: True
+- \b "~perform_planning" : \b [bool] Activate the planning node min: False, default: True, max: True
+- \b "~dock_pose_topic" : \b [str] Topic of calculated dock pose min: , default: docking/dock_pose, max: 
+- \b "~plan_topic" : \b [str] Topic of calculated plan min: , default: docking/plan, max: 
+- \b "~publish_twist" : \b [bool] Publish the twist commands to execute min: False, default: False, max: True
+- \b "~goal_dist_tolerance" : \b [double] Max Goal Distance Error Tolerance (m) min: 0.01, default: 0.03, max: 1.0
+- \b "~goal_orientation_tolerance" : \b [double] Max Goal Orientation Error Tolerance (rad) min: 0.01, default: 0.1, max: 1.0
+- \b "~time_step" : \b [double] Time per step in pose path min: 0.1, default: 0.1, max: 1.0
+- \b "~frequency" : \b [int] Controller frequency min: 1, default: 10, max: 30
+

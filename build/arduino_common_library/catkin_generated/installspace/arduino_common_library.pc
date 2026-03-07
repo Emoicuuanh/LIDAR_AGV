@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/install
+
+Name: arduino_common_library
+Description: Description of arduino_common_library
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: std_msgs

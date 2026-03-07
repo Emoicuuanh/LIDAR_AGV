@@ -1,0 +1,26 @@
+\subsubsection parameters ROS parameters
+
+Reads and maintains the following parameters on the ROS server
+
+- \b "~world_frame" : \b [str] Name of world frame min: , default: world, max: 
+- \b "~robot_frame" : \b [str] Name of robot frame min: , default: base_link, max: 
+- \b "~dock_frame" : \b [str] Name of dock frame min: , default: dock_truth, max: 
+- \b "~dock_pose_topic" : \b [str] Topic of calculated dock pose min: , default: docking/dock_pose, max: 
+- \b "~dock_gazebo_pose_topic" : \b [str] Topic of gazebo truth dock pose min: , default: dock_pose_gazebo, max: 
+- \b "~use_calculated_pose" : \b [bool] Switch between gazebo truth pose or calculated pose min: False, default: True, max: True
+- \b "~goal_dist_tolerance" : \b [double] Max Goal Distance Error Tolerance (m) min: 0.01, default: 0.03, max: 1.0
+- \b "~goal_orientation_tolerance" : \b [double] Max Goal Orientation Error Tolerance (rad) min: 0.01, default: 0.1, max: 1.0
+- \b "~use_steps" : \b [bool] Limit number of steps min: False, default: False, max: True
+- \b "~path_steps" : \b [int] Steps in pose path min: 1, default: 10, max: 369
+- \b "~max_steps" : \b [int] Max steps in pose path min: 1, default: 10, max: 10000
+- \b "~time_step" : \b [double] Time per step in pose path min: 0.1, default: 0.1, max: 1.0
+- \b "~v" : \b [double] Linear Velocity min: 0.0, default: 0.1, max: 1.0
+- \b "~omega_max" : \b [double] Max Rotational Velocity min: 0.0, default: 0.3, max: 2.0
+- \b "~kPhi" : \b [double] Rate of Change of Theta to R min: 0.0, default: 20.0, max: 100.0
+- \b "~kDelta" : \b [double] Rate to Converge to Slow Subsystem min: 0.0, default: 1.0, max: 20.0
+- \b "~curvature_max" : \b [double] Max Curvature  min: 0.0, default: 2.0, max: 20.0
+- \b "~beta" : \b [double] LinVel Gain Inversely Proportional to Curvature min: 0.0, default: 0.2, max: 1.0
+- \b "~lambda" : \b [double] LinVel Gain Exponentially Inversely Proportional to Curvature min: 0.0, default: 2.0, max: 5.0
+- \b "~entrance_dist" : \b [double] Distance to entrance checkpoint from inner dock min: -0.01, default: 0.3, max: 1.0
+- \b "~frequency" : \b [int] Controller frequency min: 1, default: 10, max: 30
+

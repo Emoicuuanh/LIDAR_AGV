@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/install
+
+Name: lenet_tape_sensor
+Description: Description of lenet_tape_sensor
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

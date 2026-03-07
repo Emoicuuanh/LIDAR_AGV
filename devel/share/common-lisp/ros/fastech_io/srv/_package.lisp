@@ -1,0 +1,15 @@
+(cl:defpackage fastech_io-srv
+  (:use )
+  (:export
+   "GETIO"
+   "<GETIO-REQUEST>"
+   "GETIO-REQUEST"
+   "<GETIO-RESPONSE>"
+   "GETIO-RESPONSE"
+   "SETVALUEOUTPUT"
+   "<SETVALUEOUTPUT-REQUEST>"
+   "SETVALUEOUTPUT-REQUEST"
+   "<SETVALUEOUTPUT-RESPONSE>"
+   "SETVALUEOUTPUT-RESPONSE"
+  ))
+

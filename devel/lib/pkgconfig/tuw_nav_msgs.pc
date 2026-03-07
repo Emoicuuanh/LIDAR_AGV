@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/devel
+
+Name: tuw_nav_msgs
+Description: Description of tuw_nav_msgs
+Version: 0.0.13
+Cflags: -I/home/mkac/mav_ws/devel/include -I/home/mkac/mav_ws/src/traffic_control/tuw_msgs/tuw_nav_msgs/include
+Libs: -L${prefix}/lib -ltuw_nav_msgs
+Requires: tf message_runtime std_msgs tuw_geometry_msgs nav_msgs

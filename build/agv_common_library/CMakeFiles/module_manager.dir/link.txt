@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -O3 -DNDEBUG  -shared -Wl,-soname,libmodule_manager.so -o /home/mkac/mav_ws/devel/lib/libmodule_manager.so CMakeFiles/module_manager.dir/src/module_manager.cpp.o 

@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/install
+
+Name: fastech_io
+Description: Description of fastech_io
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib -lfastech_io
+Requires: 

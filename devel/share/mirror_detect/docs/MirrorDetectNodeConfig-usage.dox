@@ -1,0 +1,54 @@
+\subsubsection usage Usage
+\verbatim
+<node name="mirror_detect" pkg="mirror_detect" type="mirror_detect">
+  <param name="intensity_range" type="str" value="" />
+  <param name="dock_filepath" type="str" value="" />
+  <param name="world_frame" type="str" value="world" />
+  <param name="robot_frame" type="str" value="base_link" />
+  <param name="cloud_frame" type="str" value="cloud" />
+  <param name="cloud_topic" type="str" value="cloud" />
+  <param name="scan_mirror_topic_" type="str" value="scan_mirror" />
+  <param name="laser_frame" type="str" value="base_laser_link" />
+  <param name="laser_topic" type="str" value="scan" />
+  <param name="RS_max_iter" type="int" value="250" />
+  <param name="RS_min_inliers" type="int" value="3" />
+  <param name="RS_dist_thresh" type="double" value="0.02" />
+  <param name="RANSAC_on_clusters" type="bool" value="True" />
+  <param name="publish_scan" type="bool" value="True" />
+  <param name="use_laser" type="bool" value="True" />
+  <param name="use_diff_laser" type="bool" value="True" />
+  <param name="Voxel_leaf_size" type="double" value="0.0001" />
+  <param name="mirror_point_publish" type="int" value="250" />
+  <param name="EC_cluster_tolerance" type="double" value="0.08" />
+  <param name="EC_min_size" type="int" value="10" />
+  <param name="EC_max_size" type="int" value="250" />
+  <param name="detect_type" type="int" value="0" />
+  <param name="radius_detect" type="double" value="0.001" />
+  <param name="intensity_times" type="double" value="0.001" />
+  <param name="length_mirror" type="double" value="0.01" />
+  <param name="radius_tolerance" type="double" value="0.0001" />
+  <param name="max_cluster_size" type="double" value="0.0" />
+  <param name="max_intensity_time" type="double" value="0.01" />
+  <param name="laser_resolution" type="double" value="0.01" />
+  <param name="point_discard" type="int" value="0" />
+  <param name="line_discard" type="int" value="0" />
+  <param name="mirror_type" type="int" value="0" />
+  <param name="icp_type" type="int" value="0" />
+  <param name="ICP_min_score" type="double" value="0.001" />
+  <param name="length_tolerance" type="double" value="0.001" />
+  <param name="ICP_max_corres_dist" type="double" value="0.1" />
+  <param name="ICP_max_iter" type="int" value="100" />
+  <param name="ICP_max_transl_eps" type="double" value="1e-09" />
+  <param name="ICP_max_rot_eps" type="double" value="1e-09" />
+  <param name="ICP_max_eucl_fit_eps" type="double" value="1.0" />
+  <param name="BAR_length" type="double" value="0.2" />
+  <param name="BAR_length_tolerance" type="double" value="0.2" />
+  <param name="BAR_distance" type="double" value="0.2" />
+  <param name="BAR_distance_tolerance" type="double" value="0.2" />
+  <param name="Leg_length" type="double" value="0.68" />
+  <param name="Leg_distance" type="double" value="0.85" />
+  <param name="Leg_offset" type="double" value="0.18" />
+  <param name="Leg_tolerance" type="double" value="0.1" />
+</node>
+\endverbatim
+

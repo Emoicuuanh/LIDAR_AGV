@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/install
+
+Name: docking
+Description: Description of docking
+Version: 0.0.0
+Cflags: -I${prefix}/include
+Libs: -L${prefix}/lib -ldocking
+Requires: dynamic_reconfigure roscpp rospy pcl_conversions pcl_ros message_runtime actionlib_msgs

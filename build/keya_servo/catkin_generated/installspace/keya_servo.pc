@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/install
+
+Name: keya_servo
+Description: Description of keya_servo
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

@@ -1,0 +1,5 @@
+lenet_tape_sensor
+/home/mkac/mav_ws/devel/.private/lenet_tape_sensor/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/lenet_tape_sensor/share/lenet_tape_sensor/cmake/lenet_tape_sensorConfig.cmake /home/mkac/mav_ws/devel/share/lenet_tape_sensor/cmake/lenet_tape_sensorConfig.cmake
+/home/mkac/mav_ws/devel/.private/lenet_tape_sensor/share/lenet_tape_sensor/cmake/lenet_tape_sensorConfig-version.cmake /home/mkac/mav_ws/devel/share/lenet_tape_sensor/cmake/lenet_tape_sensorConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/lenet_tape_sensor/lib/pkgconfig/lenet_tape_sensor.pc /home/mkac/mav_ws/devel/lib/pkgconfig/lenet_tape_sensor.pc

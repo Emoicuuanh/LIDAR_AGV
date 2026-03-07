@@ -1,0 +1,6 @@
+yujin_ocs/yocs_joyop
+/home/mkac/mav_ws/devel/.private/yocs_joyop/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/yocs_joyop/share/yocs_joyop/cmake/yocs_joyopConfig.cmake /home/mkac/mav_ws/devel/share/yocs_joyop/cmake/yocs_joyopConfig.cmake
+/home/mkac/mav_ws/devel/.private/yocs_joyop/share/yocs_joyop/cmake/yocs_joyopConfig-version.cmake /home/mkac/mav_ws/devel/share/yocs_joyop/cmake/yocs_joyopConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/yocs_joyop/lib/yocs_joyop/joyop /home/mkac/mav_ws/devel/lib/yocs_joyop/joyop
+/home/mkac/mav_ws/devel/.private/yocs_joyop/lib/pkgconfig/yocs_joyop.pc /home/mkac/mav_ws/devel/lib/pkgconfig/yocs_joyop.pc

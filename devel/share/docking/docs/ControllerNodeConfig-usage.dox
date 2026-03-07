@@ -1,0 +1,19 @@
+\subsubsection usage Usage
+\verbatim
+<node name="docking" pkg="docking" type="docking">
+  <param name="world_frame" type="str" value="world" />
+  <param name="robot_frame" type="str" value="base_link" />
+  <param name="dock_frame" type="str" value="dock_truth" />
+  <param name="cmd_vel_topic" type="str" value="cmd_vel" />
+  <param name="perform_detection" type="bool" value="True" />
+  <param name="perform_planning" type="bool" value="True" />
+  <param name="dock_pose_topic" type="str" value="docking/dock_pose" />
+  <param name="plan_topic" type="str" value="docking/plan" />
+  <param name="publish_twist" type="bool" value="False" />
+  <param name="goal_dist_tolerance" type="double" value="0.03" />
+  <param name="goal_orientation_tolerance" type="double" value="0.1" />
+  <param name="time_step" type="double" value="0.1" />
+  <param name="frequency" type="int" value="10" />
+</node>
+\endverbatim
+

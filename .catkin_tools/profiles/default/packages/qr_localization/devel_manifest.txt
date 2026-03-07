@@ -1,0 +1,10 @@
+qr_localization
+/home/mkac/mav_ws/devel/.private/qr_localization/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/qr_localization/share/roseus/ros/qr_localization/manifest.l /home/mkac/mav_ws/devel/share/roseus/ros/qr_localization/manifest.l
+/home/mkac/mav_ws/devel/.private/qr_localization/share/qr_localization/cmake/qr_localizationConfig-version.cmake /home/mkac/mav_ws/devel/share/qr_localization/cmake/qr_localizationConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/qr_localization/share/qr_localization/cmake/qr_localization-msg-paths.cmake /home/mkac/mav_ws/devel/share/qr_localization/cmake/qr_localization-msg-paths.cmake
+/home/mkac/mav_ws/devel/.private/qr_localization/share/qr_localization/cmake/qr_localization-msg-extras.cmake /home/mkac/mav_ws/devel/share/qr_localization/cmake/qr_localization-msg-extras.cmake
+/home/mkac/mav_ws/devel/.private/qr_localization/share/qr_localization/cmake/qr_localizationConfig.cmake /home/mkac/mav_ws/devel/share/qr_localization/cmake/qr_localizationConfig.cmake
+/home/mkac/mav_ws/devel/.private/qr_localization/lib/pkgconfig/qr_localization.pc /home/mkac/mav_ws/devel/lib/pkgconfig/qr_localization.pc
+/home/mkac/mav_ws/devel/.private/qr_localization/lib/qr_localization/qr_code_localization /home/mkac/mav_ws/devel/lib/qr_localization/qr_code_localization
+/home/mkac/mav_ws/devel/.private/qr_localization/lib/python3/dist-packages/qr_localization/__init__.py /home/mkac/mav_ws/devel/lib/python3/dist-packages/qr_localization/__init__.py

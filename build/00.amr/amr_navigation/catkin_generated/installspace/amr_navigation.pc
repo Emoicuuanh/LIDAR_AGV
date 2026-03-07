@@ -1,0 +1,8 @@
+prefix=/home/mkac/mav_ws/install
+
+Name: amr_navigation
+Description: Description of amr_navigation
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

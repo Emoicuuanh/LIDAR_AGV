@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/mkac/mav_ws/src/agv_common_library/src/get_hardware_hash.cpp
+algorithm
+-
+cerrno
+-
+cstdio
+-
+cstdlib
+-
+cstring
+-
+ctime
+-
+fstream
+-
+iomanip
+-
+iostream
+-
+pwd.h
+-
+sstream
+-
+stdexcept
+-
+string
+-
+sys/types.h
+-
+unistd.h
+-
+vector
+-
+
