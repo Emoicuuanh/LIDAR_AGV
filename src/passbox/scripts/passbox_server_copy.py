@@ -158,6 +158,10 @@ class MainState(EnumString):
     GOTO_LIFT_WAITING = 104
     SEND_DOCKING_LIFT = 105
     DOCKING_TO_LIFT = 106
+    ROTATE_FIND_MIRROR_LIFT = 107
+    WAIT_RESET_IO = 108
+    ROTATE_TO_GOAL_ANGLE = 109
+    ERROR_LIFT_TABLE = 110
 
 # Định nghĩa bảng lỗi: bit index → tên lỗi
 PLC_ERROR_BIT_MAP = {
@@ -333,7 +337,7 @@ class PassboxAction(object):
         # Loop
         self.loop()
 
-    def dynamic_callback(self, config, level):
+    def dynamic_callback(self, config):
         rospy.loginfo("Dynamic reconfigure callback")
         pass
 
@@ -356,9 +360,9 @@ class PassboxAction(object):
         self.detect_vrack = False
         self.liftdown_finish = False
         self.liftdown_finish_first_check = False
-        self.enable_safety = True
+        self.enable_safety = False
         self.vel_move_base = 0.8
-        self.plc_ip = rospy.get_param("~plc_ip", "192.168.1.200")
+        self.plc_ip = rospy.get_param("~plc_ip", "192.86.11.191")
         self.plc_port = rospy.get_param("~plc_port", 5000)
         rospy.loginfo("Connecting to PLC: {}:{}".format(self.plc_ip, self.plc_port))
         modbus_tcp_passbox.connect(self.plc_ip, self.plc_port)
@@ -435,8 +439,14 @@ class PassboxAction(object):
             "waiting": {"x_offset":  0.8,  "y_offset": 0.0},
             "temp":    {"x_offset":  0.8,  "y_offset": 0.0},
         }
+        self.mirror_offsets_lift = {
+            "hub":     {"x_offset": -0.42, "y_offset": 0.0},
+            "waiting": {"x_offset":  0.8,  "y_offset": 0.0},
+            "temp":    {"x_offset":  0.8,  "y_offset": 0.0},
+        }
         self.length_hub = 1.0  # default, overwrite from hub.json
         self.length_passbox = 1.2
+        self.choose_config_docking = False #True khi docking lift false khi docking hub
 
     def check_connected(self):
         return modbus_tcp_passbox.is_connected()
@@ -680,6 +690,15 @@ class PassboxAction(object):
                         "waiting": {"x_offset": 0.8, "y_offset": 0.0},
                         "temp": {"x_offset": 0.8, "y_offset": 0.0}
                     }
+                if "mirror_offsets_lift" in hub_dict:
+                    self.mirror_offsets_lift = hub_dict["mirror_offsets_lift"]
+                else:
+                    # Default values for backward compatibility
+                    self.mirror_offsets_lift = {
+                        "hub": {"x_offset": -0.42, "y_offset": 0.0},
+                        "waiting": {"x_offset": 0.8, "y_offset": 0.0},
+                        "temp": {"x_offset": 0.8, "y_offset": 0.0}
+                    }
             # Waiting path config
             waiting_path_cfg = os.path.join(
                 self.config_path, "waiting_path.json"
@@ -710,14 +729,14 @@ class PassboxAction(object):
             temp_path_cfg = os.path.join(self.config_path, "docking_path.json")
             with open(temp_path_cfg) as j:
                 self.temp_path_dict = json.load(j)
-            self.lift_temp_path_dict = copy.deepcopy(self.temp_path_dict)            
+            self.lift_temp_path_dict = copy.deepcopy(self.temp_path_dict)
             # rotation path config
             rotation_path_cfg = os.path.join(
                 self.config_path, "waiting_path.json"
             )
             with open(rotation_path_cfg) as j:
                 self.rotation_path_dict = json.load(j)
-            self.lift_rotation_path_dict = copy.deepcopy(self.rotation_path_dict)    
+            self.lift_rotation_path_dict = copy.deepcopy(self.rotation_path_dict)
         except Exception as e:
             rospy.logerr("Read config file error: {}".format(e))
             self._as.set_aborted("Read config file error")
@@ -726,16 +745,20 @@ class PassboxAction(object):
         # Load data from action
         data_dict = json.loads(goal.data)
         rospy.logwarn(data_dict)
-        direction = BACKWARD
+        self.direction = BACKWARD
         self.enable_safety = False
 
+        # Direction mặc định: PICK = FORWARD (quay đầu vào hub), PLACE = BACKWARD (lùi vào hub)
+        # Có thể bị override bởi property "invert" bên dưới
         pick_or_place = data_dict["params"]["pick_or_place"]
         floor_equal = data_dict["params"]["floor_equal"]
         if pick_or_place:
             goal_type = PICK
+            self.direction = FORWARD   # mặc định PICK: quay đầu vào hub
             _state = MainState.INIT
         else:
             goal_type = PLACE
+            self.direction = BACKWARD  # mặc định PLACE: lùi vào hub
             _state = MainState.INIT
 
         try:
@@ -743,8 +766,8 @@ class PassboxAction(object):
             hub_pose_y = data_dict["params"]["position"]["y"]
             waiting_pose_x = data_dict["params"]["waiting_position"]["x"]
             waiting_pose_y = data_dict["params"]["waiting_position"]["y"]
-            lift_pose_x = data_dict["params"]["lift_position"]["x"]
-            lift_pose_y = data_dict["params"]["lift_position"]["y"]
+            lift_pose_x = data_dict["params"]["lift_table_position"]["x"]
+            lift_pose_y = data_dict["params"]["lift_table_position"]["y"]
             inside_pose_x = data_dict["params"]["inside_position"]["x"]
             inside_pose_y = data_dict["params"]["inside_position"]["y"]
 
@@ -827,8 +850,6 @@ class PassboxAction(object):
                 if "Safety" in data_dict["params"]["properties"]:
                     if data_dict["params"]["properties"]["Safety"] == "Disable":
                         self.enable_safety = False
-                if "Invert" in data_dict["params"]["properties"]:
-                    direction = data_dict["params"]["properties"]["invert"]
                 if "disable_lift" in data_dict["params"]["properties"]:
                     self.disable_lift = data_dict["params"]["properties"]["disable_lift"]
                     rospy.loginfo(f"self.disable_lift {self.disable_lift}")
@@ -877,7 +898,32 @@ class PassboxAction(object):
                             self.mirror_offsets["temp"]["y_offset"] += additional_offset_y
                     except (ValueError, TypeError) as e:
                         rospy.logerr(f"Invalid offset_y value in properties: {e}")
+#################################################
+                # Add offset support from properties
+                if "offset_x_lift" in data_dict["params"]["properties"]:
+                    try:
+                        additional_offset_x = float(data_dict["params"]["properties"]["offset_x_lift"])
+                        rospy.logwarn(f"Additional offset_x_lift from properties: {additional_offset_x}")
+                        # Apply additional offset to mirror offsets if they exist
+                        if hasattr(self, 'mirror_offsets_lift'):
+                            self.mirror_offsets_lift["hub"]["x_offset"] += additional_offset_x
+                            self.mirror_offsets_lift["waiting"]["x_offset"] += additional_offset_x
+                            self.mirror_offsets_lift["temp"]["x_offset"] += additional_offset_x
+                    except (ValueError, TypeError) as e:
+                        rospy.logerr(f"Invalid offset_x value in properties: {e}")
 
+                if "offset_y_lift" in data_dict["params"]["properties"]:
+                    try:
+                        additional_offset_y = float(data_dict["params"]["properties"]["offset_y_lift"])
+                        rospy.logwarn(f"Additional offset_y_lift from properties: {additional_offset_y}")
+                        # Apply additional offset to mirror offsets if they exist
+                        if hasattr(self, 'mirror_offsets_lift'):
+                            self.mirror_offsets_lift["hub"]["y_offset"] += additional_offset_y
+                            self.mirror_offsets_lift["waiting"]["y_offset"] += additional_offset_y
+                            self.mirror_offsets_lift["temp"]["y_offset"] += additional_offset_y
+                    except (ValueError, TypeError) as e:
+                        rospy.logerr(f"Invalid offset_y value in properties: {e}")
+############################################################3
                 cell_number = None
                 try:
                     # Lấy cell number từ position hoặc cell
@@ -929,8 +975,8 @@ class PassboxAction(object):
                 self.disable_check_cart = False
                 self.disable_lift = False
 
-            if "invert" in data_dict["params"]:
-                self.direction = data_dict["params"]["invert"]
+            # if "invert" in data_dict["params"]:
+            #     self.direction = data_dict["params"]["invert"]
 
             # Convert coordinates if USE_DOCKING_BY_MIRROR and lidar info available
             if USE_DOCKING_BY_MIRROR and self.has_lidar_info:
@@ -980,8 +1026,8 @@ class PassboxAction(object):
                     rospy.logwarn("USE_DOCKING_BY_MIRROR is True but no lidar info available, using original coordinates")
 
         except:
-            hub_pose_x = data_dict["params"]["position"]["position"]["x"]
-            hub_pose_y = data_dict["params"]["position"]["position"]["y"]
+            hub_pose_x = data_dict["params"]["position"]["x"]
+            hub_pose_y = data_dict["params"]["position"]["y"]
             waiting_pose_x = self.trans[0]
             waiting_pose_y = self.trans[1]
             lift_pose_x = None  # Fallback in exception case
@@ -996,27 +1042,29 @@ class PassboxAction(object):
             FAKE_QR_CODE = False
         else:
             FAKE_QR_CODE = True
+        # PICK: quay đầu vào hub (FORWARD), PLACE: lùi vào hub (BACKWARD)
+        # direction có thể đã bị override bởi property "invert"
         if floor_equal:
-            if direction == FORWARD:
+            if self.direction == FORWARD:
                 cur_orient = atan2(
                     hub_pose_y - inside_pose_y, hub_pose_x - inside_pose_x
                 )
-            else:
+            else:  # BACKWARD
                 cur_orient = atan2(
                     inside_pose_y - hub_pose_y, inside_pose_x - hub_pose_x
                 )
         else:
-            if direction == FORWARD:
+            if self.direction == FORWARD:
                 cur_orient = atan2(
                     hub_pose_y - lift_pose_y, hub_pose_x - lift_pose_x
                 )
-            else:
+            else:  # BACKWARD
                 cur_orient = atan2(
                     lift_pose_y - hub_pose_y, lift_pose_x - hub_pose_x
                 )
 
         # ============================================================
-        # CALCULATE INSIDE GOAL 
+        # CALCULATE INSIDE GOAL
         # ============================================================
         self.inside_goal = StringGoal()
         inside_pose = self.calculate_pose_offset(
@@ -1028,6 +1076,10 @@ class PassboxAction(object):
         rospy.logwarn(" cur_orient docking: {}".format(cur_orient))
         if USE_DOCKING_BY_MIRROR:
             odom_pose = self.wait_until_pose_available()
+            if odom_pose is None:
+                rospy.logerr("Failed to get odom_pose")
+                self._as.set_aborted("Failed to get odom_pose")
+                return
             inside_pose = self.transform_pose_map_to_odom(inside_pose)
             inside_pose.position.x = odom_pose.position.x
             inside_pose.position.y = odom_pose.position.y
@@ -1046,7 +1098,7 @@ class PassboxAction(object):
         )
 
         # ============================================================
-        # CALCULATE WAITING GOAL 
+        # CALCULATE WAITING GOAL
         # ============================================================
         self.waiting_goal = StringGoal()
         waiting_pose = self.calculate_pose_offset(
@@ -1381,6 +1433,10 @@ class PassboxAction(object):
         _state_when_network_timeout = MainState.NONE # Lưu state tại thời điểm timeout trước khi set state mất kết nối plc
         first_go_to_waiting = True  # Flag for first time going to waiting position
         disable_auto_get_center_tape = False  # Flag for auto center tape detection
+        # Reconnect nếu bị disconnect từ action trước (disconnect() gọi cuối mỗi action)
+        if not self.check_connected():
+            rospy.logwarn("PLC disconnected, reconnecting...")
+            modbus_tcp_passbox.connect(self.plc_ip, self.plc_port)
         if self.check_connected():
             rospy.sleep(1)
             rospy.logwarn("connect passbox success first time")
@@ -1409,7 +1465,6 @@ class PassboxAction(object):
 
             if not self.get_odom():
                 continue
-            
             distance_to_hub = distance_two_points(
                 self.pose_map2robot.position.x,
                 self.pose_map2robot.position.y,
@@ -1469,6 +1524,13 @@ class PassboxAction(object):
                 feedback_msg = _state.toString()
                 self._asm.module_state = _state.toString()
             self.send_feedback(self._as, feedback_msg)
+            # ################# set safety job #################
+            self.safety_job_name = ""
+            msg = StringStamped()
+            msg.stamp = rospy.Time.now()
+            msg.data = self.safety_job_name
+            self.safety_job_pub.publish(msg)
+            # ################# end set safety job #################
             # """
             # .####.##....##.####.########
             # ..##..###...##..##.....##...
@@ -1482,9 +1544,10 @@ class PassboxAction(object):
             # State: INIT
             if _state == MainState.INIT:
                 if modbus_tcp_passbox.read_slave_3(1, emg_agv_request, 1)[0] == 1:
-                    modbus_tcp_passbox.write_slave(1,emg_agv_request,0) 
+                    modbus_tcp_passbox.write_slave(1,emg_agv_request,0)
                 else:
                     pass
+                self.enable_safety = False
                 self.vel_move_base = rospy.get_param(
                     "/move_base/NeoLocalPlanner/max_vel_x",0.8
                 )
@@ -1499,14 +1562,14 @@ class PassboxAction(object):
                 # Nếu có lift_pose → navigate tới lift_pose trước
                 # Nếu không có lift_pose → đi thẳng đến waiting_pose
                 if floor_equal:
-                    if lift_pose_x is not None and lift_pose_y is not None:
-                        rospy.logwarn("INIT -> OPEN_BARIE")
-                        _state = MainState.OPEN_BARIE
-                else:
                     if goal_type == PICK:
                         _state = MainState.LIFT_MIN_FIRST
                     else:
                         _state = MainState.LIFT_MAX_FIRST
+                else:
+                    if lift_pose_x is not None and lift_pose_y is not None:
+                        rospy.logwarn("INIT -> OPEN_BARIE")
+                        _state = MainState.OPEN_BARIE
                 if self._asm.pause_req:
                     self._asm.reset_flag()
                     self.moving_control_run_pause_pub.publish(
@@ -1514,7 +1577,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
-
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             #######.######..#######.#.....#.........######.....#....######..###.#######.
             #.....#.#.....#.#.......##....#.........#.....#...#.#...#.....#..#..#.......
             #.....#.#.....#.#.......#.#...#.........#.....#..#...#..#.....#..#..#.......
@@ -1541,7 +1610,13 @@ class PassboxAction(object):
                     modbus_tcp_passbox.write_slave(1,place_agv_request,1) #yêu cầu place
                 else:
                     rospy.logwarn("nodefine")
-
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             #######.#.....#.#######.#######.######.....#.......###.#######.#######.
             #.......##....#....#....#.......#.....#....#........#..#..........#....
             #.......#.#...#....#....#.......#.....#....#........#..#..........#....
@@ -1560,13 +1635,19 @@ class PassboxAction(object):
                     _state = MainState.SEND_GOTO_LIFT_TEMP_POSE  # xoay trước khi lùi
                 else:
                     modbus_tcp_passbox.write_slave(1,place_agv_request, [1])
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
 ######################
 #########################
 ######################
 ############################3
             elif _state == MainState.SEND_GOTO_LIFT_TEMP_POSE:
-                if modbus_tcp_passbox.read_slave_3(1, emg_agv_request, 1)[0] == 1:
-                    modbus_tcp_passbox.write_slave(1, emg_agv_request, 0)
+                self.choose_config_docking = True
                 self.send_request_get_mirror(
                     self.calculate_pose_offset(
                         0.4,
@@ -1594,7 +1675,7 @@ class PassboxAction(object):
                     "rotation_goal":       self.lift_rotation_goal,
                     "rotation_path_dict":  self.lift_rotation_path_dict,
                 }, self.initial_lift_to_waiting_distance):
-                    # Tính góc từ hub đến waiting
+                    # Tính góc từ lift đến waiting
                     target_angle = atan2(
                         waiting_pose_y - lift_pose_y,
                         waiting_pose_x - lift_pose_x
@@ -1631,6 +1712,9 @@ class PassboxAction(object):
                         self.length_passbox,
                         False,
                     )
+                self.dynamic_reconfig_movebase(
+                    vel_docking_hub, publish_safety=False, stop_center_qr=False
+                )
                 self.moving_control_client.send_goal(
                     self.lift_temp_goal,
                     feedback_cb=self.moving_control_fb,
@@ -1645,6 +1729,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
 
             elif _state == MainState.SEND_ROTATE_FIND_MIRROR_LIFT:
                 self.moving_control_client.send_goal(
@@ -1653,7 +1744,7 @@ class PassboxAction(object):
                 )
                 self.moving_control_result = -1
                 self.last_moving_control_fb = rospy.get_time()
-                _state = MainState.ROTATE_FIND_MIRROR
+                _state = MainState.ROTATE_FIND_MIRROR_LIFT
                 if self._asm.pause_req:
                     self._asm.reset_flag()
                     self.moving_control_run_pause_pub.publish(
@@ -1661,10 +1752,15 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
-
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
+                    
             elif _state == MainState.GOING_TO_LIFT_TEMP_POSE:
-                if modbus_tcp_passbox.read_slave_3(1, emg_agv_request, 1)[0] == 1:
-                    modbus_tcp_passbox.write_slave(1, emg_agv_request, 0)
                 if self.moving_control_result == GoalStatus.SUCCEEDED:
                     _state = MainState.SEND_GOTO_LIFT_WAITING
                 elif (
@@ -1695,6 +1791,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
 
             elif _state == MainState.SEND_GOTO_LIFT_WAITING:
                 self.moving_control_client.send_goal(
@@ -1711,7 +1814,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
-
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             elif _state == MainState.GOTO_LIFT_WAITING:
                 rospy.logwarn(self.moving_control_error_code)
                 if self.enable_safety and first_go_to_waiting:
@@ -1720,8 +1829,15 @@ class PassboxAction(object):
                     self.safety_job_name = ""
                 if self.moving_control_result == GoalStatus.SUCCEEDED:
                     _state = MainState.SEND_DOCKING_LIFT
-
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             elif _state == MainState.SEND_DOCKING_LIFT:
+                self.choose_config_docking = True
                 if USE_DOCKING_BY_MIRROR:
                     self.send_request_get_mirror(
                         self.calculate_pose_offset(
@@ -1787,7 +1903,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
-
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
 
             elif _state == MainState.DOCKING_TO_LIFT:
                 if modbus_tcp_passbox.read_slave_3(1, emg_agv_request, 1)[0] == 1:
@@ -1887,6 +2009,7 @@ class PassboxAction(object):
                             continue
                 if self.moving_control_result == GoalStatus.SUCCEEDED:
                     _state = MainState.LIFT_AGV
+                    self.choose_config_docking = False
                     continue
                 elif (
                     self.moving_control_result != GoalStatus.SUCCEEDED
@@ -1918,6 +2041,13 @@ class PassboxAction(object):
                     _state_when_pause = _state
                     _state = MainState.PAUSED
                     continue
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             # ============================================================
             # State: SEND_GOTO_TEMP_POSE  (chỉ dùng khi USE_DOCKING_BY_MIRROR)
             # ============================================================
@@ -1938,7 +2068,7 @@ class PassboxAction(object):
             # ........#.......#######..#####..#######.
             # #######.................................
             elif _state == MainState.SEND_GOTO_TEMP_POSE:
-
+                rospy.loginfo("Send goto temp pose")
                 if floor_equal:
                     self.send_request_get_mirror(
                         self.calculate_pose_offset(
@@ -1987,6 +2117,7 @@ class PassboxAction(object):
                             rospy.logwarn("Angle detect mirror difference requires rotation, rotating robot...")
                             # Chuyển sang trạng thái xoay robot
                             _state = MainState.SEND_ROTATE_FIND_MIRROR
+                            continue
                         else:
                             _state_when_error = _state
                             _state = MainState.DETECT_MIRROR_ERROR
@@ -2028,8 +2159,8 @@ class PassboxAction(object):
                             hub_pose_x,
                             hub_pose_y,
                             atan2(
-                                inside_pose_y - hub_pose_y,
-                                inside_pose_x - hub_pose_x,
+                                lift_pose_y - hub_pose_y,
+                                lift_pose_x - hub_pose_x,
                             ),
                         ),
                         self.length_hub,
@@ -2038,8 +2169,8 @@ class PassboxAction(object):
                     )
                     rospy.sleep(1)
                     if not self.compute_goals_from_mirror({
-                        "waiting_goal":        self.inside_goal,
-                        "waiting_path_dict":   self.inside_path_dict,
+                        "waiting_goal":        self.lift_goal,
+                        "waiting_path_dict":   self.lift_path_dict,
                         "docking_goal":        self.docking_goal,
                         "docking_path_dict":   self.docking_path_dict,
                         "undocking_goal":      self.undocking_goal,
@@ -2051,8 +2182,8 @@ class PassboxAction(object):
                     },self.initial_hub_to_lift_distance):
                         # Tính góc từ hub đến waiting
                         target_angle = atan2(
-                            inside_pose_y - hub_pose_y,
-                            inside_pose_x - hub_pose_x
+                            lift_pose_y - hub_pose_y,
+                            lift_pose_x - hub_pose_x
                         )
 
                         # Lấy góc hiện tại của robot
@@ -2069,6 +2200,7 @@ class PassboxAction(object):
                             rospy.logwarn("Angle detect mirror difference requires rotation, rotating robot...")
                             # Chuyển sang trạng thái xoay robot
                             _state = MainState.SEND_ROTATE_FIND_MIRROR
+                            continue
                         else:
                             _state_when_error = _state
                             _state = MainState.DETECT_MIRROR_ERROR
@@ -2080,8 +2212,8 @@ class PassboxAction(object):
                                 hub_pose_x,
                                 hub_pose_y,
                                 atan2(
-                                    inside_pose_y - hub_pose_y,
-                                    inside_pose_x - hub_pose_x,
+                                    lift_pose_y - hub_pose_y,
+                                    lift_pose_x - hub_pose_x,
                                 ),
                             ),
                             self.length_hub,
@@ -2101,6 +2233,13 @@ class PassboxAction(object):
                         )
                         _state_when_pause = _state
                         _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             # .#####..#######.#.....#.######..........######..#######.#######....#....
             # #.....#.#.......##....#.#.....#.........#.....#.#.....#....#......#.#...
             # #.......#.......#.#...#.#.....#.........#.....#.#.....#....#.....#...#..
@@ -2130,7 +2269,7 @@ class PassboxAction(object):
                     self.moving_control_client.send_goal(
                         self.inside_goal,
                         feedback_cb=self.moving_control_fb,
-                    )                    
+                    )
                 else:
                     self.moving_control_client.send_goal(
                         self.lift_goal,
@@ -2146,7 +2285,36 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
-
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
+################## When detect mirror docking lift###################################
+            elif _state == MainState.SEND_ROTATE_FIND_MIRROR_LIFT:
+                self.moving_control_client.send_goal(
+                    self.waiting_goal,
+                feedback_cb=self.moving_control_fb,
+                )
+                self.moving_control_result = -1
+                self.last_moving_control_fb = rospy.get_time()
+                _state = MainState.ROTATE_FIND_MIRROR_LIFT
+                if self._asm.pause_req:
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             # ######..#######.#######....#....#######.#######.........#######.###.#.....#.
             # #.....#.#.....#....#......#.#......#....#...............#........#..##....#.
             # #.....#.#.....#....#.....#...#.....#....#...............#........#..#.#...#.
@@ -2195,8 +2363,52 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
-
-
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
+#########################3 Rotate LIFT DOCKING ##################################
+            elif _state == MainState.ROTATE_FIND_MIRROR_LIFT:
+                if self.moving_control_result == GoalStatus.SUCCEEDED:
+                    _state = MainState.SEND_GOTO_LIFT_TEMP_POSE
+                elif (
+                    self.moving_control_result != GoalStatus.SUCCEEDED
+                    and self.moving_control_result != GoalStatus.ACTIVE
+                    and self.moving_control_result != -1
+                ) or self.moving_control_error_code != "":
+                    rospy.logerr(
+                        "Go to waiting fail: {}".format(
+                            GoalStatus.to_string(self.moving_control_result)
+                        )
+                    )
+                    _state_bf_error = MainState.SEND_ROTATE_FIND_MIRROR_LIFT
+                    _state_when_error = _state
+                    _state = MainState.MOVING_ERROR
+                if rospy.get_time() - self.last_moving_control_fb >= 5.0:
+                    rospy.logerr("/moving control disconnected!")
+                    self.send_feedback(
+                        self._as, GoalStatus.to_string(GoalStatus.ABORTED)
+                    )
+                    _state_bf_error = MainState.SEND_ROTATE_FIND_MIRROR_LIFT
+                    _state_when_error = _state
+                    _state = MainState.MOVING_DISCONNECTED
+                if self._asm.pause_req:
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             # .#####..#######.###.#.....#..#####..........#######.#######.........#######.
             # #.....#.#.....#..#..##....#.#.....#............#....#.....#............#....
             # #.......#.....#..#..#.#...#.#..................#....#.....#............#....
@@ -2214,6 +2426,7 @@ class PassboxAction(object):
             # #######.#.....#.#...............#.......#######..#####..#######.
             # ........................#######.................................
             elif _state == MainState.GOING_TO_TEMP_POSE:
+                rospy.loginfo("Go to temp pose")
                 if self.moving_control_result == GoalStatus.SUCCEEDED:
                     _state = MainState.SEND_GOTO_WAITING
                 elif (
@@ -2244,7 +2457,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
-
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
 
             #.....#.#######.#######.#.....#.#######.######..#....#.........#######.######..
             ##....#.#..........#....#..#..#.#.....#.#.....#.#...#..........#.......#.....#.
@@ -2330,6 +2549,7 @@ class PassboxAction(object):
 
             # State: SEND_GOTO_WAITING
             elif _state == MainState.SEND_GOTO_WAITING:
+                rospy.loginfo("Send goto waiting")
                 if floor_equal:
                     self.moving_control_client.send_goal(
                         self.inside_goal,
@@ -2350,7 +2570,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
-
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             # """
             # ..######....#######..........##......##....###....####.########.####.##....##..######..
             # .##....##..##.....##.........##..##..##...##.##....##.....##.....##..###...##.##....##.
@@ -2363,6 +2589,7 @@ class PassboxAction(object):
 
             # State: SEND_GOTO_WAITING
             elif _state == MainState.GOING_TO_WAITING:
+                rospy.logwarn("Go to waiting")
                 rospy.logwarn(self.moving_control_error_code)
                 if self.enable_safety and first_go_to_waiting:
                     self.safety_job_name = safety_job_rotation
@@ -2404,7 +2631,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
-
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             #.....#.#######.#.....#.###.#.....#..#####..........#######.######..######..
             ##...##.#.....#.#.....#..#..##....#.#.....#.........#.......#.....#.#.....#.
             #.#.#.#.#.....#.#.....#..#..#.#...#.#...............#.......#.....#.#.....#.
@@ -2468,8 +2701,13 @@ class PassboxAction(object):
             # Xoay AGV để đít (rear) quay về phía lift trước khi lùi vào
             # ============================================================
             elif _state == MainState.ROTATE_BEFORE_LIFT:
-                if modbus_tcp_passbox.read_slave_3(1, emg_agv_request, 1)[0] == 1:
-                    modbus_tcp_passbox.write_slave(1, emg_agv_request, 0)
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
                 # Cancel + PAUSE moving control để dừng hoàn toàn NeoLocalPlanner
                 # trước khi rotate_to_goal() bắt đầu publish cmd_vel
                 if not hasattr(self, '_rotate_lift_cancelled') or not self._rotate_lift_cancelled:
@@ -2515,13 +2753,11 @@ class PassboxAction(object):
             # State: LIFT_AGV
             # ============================================================
             elif _state == MainState.LIFT_AGV:
-                if modbus_tcp_passbox.read_slave_3(1, emg_agv_request, 1)[0] == 1:
-                    modbus_tcp_passbox.write_slave(1, emg_agv_request, 0)
                 rospy.logwarn("lift agv")
                 if self.moving_control_result == GoalStatus.SUCCEEDED:
                     modbus_tcp_passbox.write_slave(1,agv_going_passbox,0) #agv đi vao ban nang
                     modbus_tcp_passbox.write_slave(1,close_barie_dirty_side,1) #dong barie dirty side
-                    if(modbus_tcp_passbox.read_slave(1,barie_state,1)[0]== 1): # barie dirty side đã đóng 
+                    if(modbus_tcp_passbox.read_slave(1,barie_state,1)[0]== 1): # barie dirty side đã đóng
                         modbus_tcp_passbox.write_slave(1,pick_agv_request, [1])
                         if modbus_tcp_passbox.write_slave(1,pick_agv_request, [1]) == False:
                             _state = MainState.NETWORK_ERROR
@@ -2564,6 +2800,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             # """
             # .##.......####.########.########.........##.....##.####.##....##.........########.####.########...######..########
             # .##........##..##..........##............###...###..##..###...##.........##........##..##.....##.##....##....##...
@@ -2575,8 +2818,6 @@ class PassboxAction(object):
             # """
             # State: LIFT_MIN_FIRST
             elif _state == MainState.LIFT_MIN_FIRST:
-                if modbus_tcp_passbox.read_slave_3(1, emg_agv_request, 1)[0] == 1:
-                    modbus_tcp_passbox.write_slave(1, emg_agv_request, 0)
                 rospy.logwarn("lift min first state")
                 if self.liftdown_finish:
                     modbus_tcp_passbox.write_slave(1,close_barie_dirty_side,0)
@@ -2591,7 +2832,14 @@ class PassboxAction(object):
                         StringStamped(stamp=rospy.Time.now(), data="PAUSE")
                     )
                     _state_when_pause = _state
-                    _state = MainState.PAUSED
+                    _state = MainState.PAUSE
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             # """
             # .##.......####.########.########.........##.....##....###....##.....##.........########.####.########...######..########
             # .##........##..##..........##............###...###...##.##....##...##..........##........##..##.....##.##....##....##...
@@ -2605,8 +2853,6 @@ class PassboxAction(object):
             # State: LIFT_MAX_FIRST
 
             elif _state == MainState.LIFT_MAX_FIRST:
-                if modbus_tcp_passbox.read_slave_3(1, emg_agv_request, 1)[0] == 1:
-                    modbus_tcp_passbox.write_slave(1, emg_agv_request, 0)
                 rospy.logwarn("lift max first state")
                 if self.liftup_finish:
                     modbus_tcp_passbox.write_slave(1,close_barie_dirty_side,0)
@@ -2622,6 +2868,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             # """
             # .########..########..#######..##.....##.########..######..########.........########.##....##.########.########.########.........########.....###.....######...######..########...#######..##.....##
             # .##.....##.##.......##.....##.##.....##.##.......##....##....##............##.......###...##....##....##.......##.....##....##.....##...##.##...##....##.##....##.##.....##.##.....##.##.....##
@@ -2644,6 +2897,13 @@ class PassboxAction(object):
                         modbus_tcp_passbox.write_slave(1,lift_open_door_dirty_side,1)
                         if(modbus_tcp_passbox.read_slave(1,done_open_dirty_side,1)[0]== 1):
                             _state = MainState.SEND_GOTO_TEMP_POSE
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
 
             # """
             # ..######..########.##....##.########.........########...#######...######..##....##.####.##....##..######..........##.....##.##.....##.########.
@@ -2656,6 +2916,7 @@ class PassboxAction(object):
             # """
             # State: SEND_DOCKING_HUB
             elif _state == MainState.SEND_DOCKING_HUB:
+                rospy.logwarn("send docking hub state")
                 if floor_equal:
                     if USE_DOCKING_BY_MIRROR:
                         self.send_request_get_mirror(
@@ -2788,6 +3049,13 @@ class PassboxAction(object):
                         )
                         _state_when_pause = _state
                         _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             # """
             # .########...#######...######..##....##.####.##....##..######..
             # .##.....##.##.....##.##....##.##...##...##..###...##.##....##.
@@ -2800,6 +3068,7 @@ class PassboxAction(object):
             # State: DOCKING_TO_HUB
 
             elif _state == MainState.DOCKING_TO_HUB:
+                rospy.loginfo("Docking to hub")
                 if self.direction == FORWARD:
                     if self.enable_safety:
                         self.safety_job_name = safety_job_docking_forward
@@ -2927,6 +3196,13 @@ class PassboxAction(object):
                     _state_when_pause = _state
                     _state = MainState.PAUSED
                     continue
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
 
             # """
             # ..######..##.....##.########..######..##....##..........######.....###....########..########
@@ -2951,6 +3227,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             # """
             # .##.......####.########.########.........##.....##....###....##.....##
             # .##........##..##..........##............###...###...##.##....##...##.
@@ -2964,27 +3247,27 @@ class PassboxAction(object):
             elif _state == MainState.LIFT_MAX:
                 rospy.logwarn("lift max state")
                 if self.liftup_finish:
-                    # if self.server_config != None:
-                    #     if self.upDateCart(
-                    #         self.type, self.name, self.cell, "", ""
-                    #     ) and self.upDateCart(
-                    #         "AGV", self.data, 0, self.cart, self.lot
-                    #     ):
-                    #         rospy.sleep(1)
-                    #         _state = MainState.SEND_GOTO_OUT_OF_HUB
-                    #     else:
-                    #         rospy.logwarn("UPDATE_CART_ERROR --> RETRY")
-                    # else:
-                    #     rospy.sleep(1)
+                    if self.server_config != None:
+                        if self.upDateCart(
+                            self.type, self.name, self.cell, "", ""
+                        ) and self.upDateCart(
+                            "AGV", self.data, 0, self.cart, self.lot
+                        ):
+                            rospy.sleep(1)
+                            _state = MainState.SEND_GOTO_OUT_OF_HUB
+                        else:
+                            rospy.logwarn("UPDATE_CART_ERROR --> RETRY")
+                    else:
+                        rospy.sleep(1)
                     _state = MainState.SEND_GOTO_OUT_OF_HUB
-                    # if self.lot == "":
-                    #     self.db.saveStatusCartData(
-                    #         "status_cart", "have_empty_cart"
-                    #     )
-                    # else:
-                    #     self.db.saveStatusCartData(
-                    #         "status_cart", "have_full_cart"
-                    #     )
+                    if self.lot == "":
+                        self.db.saveStatusCartData(
+                            "status_cart", "have_empty_cart"
+                        )
+                    else:
+                        self.db.saveStatusCartData(
+                            "status_cart", "have_full_cart"
+                        )
                 else:
                     self.lift_msg.stamp = rospy.Time.now()
                     self.lift_msg.data = LIFT_UP
@@ -2996,6 +3279,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             # """
             # .##.......####.########.########.........##.....##.####.##....##
             # .##........##..##..........##............###...###..##..###...##
@@ -3009,18 +3299,18 @@ class PassboxAction(object):
             elif _state == MainState.LIFT_MIN:
                 rospy.logwarn("lift min state")
                 if self.liftdown_finish:
-                    # if self.server_config != None:
-                    #     if self.upDateCart(
-                    #         self.type, self.name, self.cell, self.cart, self.lot
-                    #     ) and self.upDateCart("AGV", self.data, 0, "", ""):
-                    #         rospy.sleep(1)
-                    #         _state = MainState.SEND_GOTO_OUT_OF_HUB
-                    #     else:
-                    #         rospy.logwarn("UPDATE_CART_ERROR --> RETRY")
-                    # else:
-                    #     rospy.sleep(1)
+                    if self.server_config != None:
+                        if self.upDateCart(
+                            self.type, self.name, self.cell, self.cart, self.lot
+                        ) and self.upDateCart("AGV", self.data, 0, "", ""):
+                            rospy.sleep(1)
+                            _state = MainState.SEND_GOTO_OUT_OF_HUB
+                        else:
+                            rospy.logwarn("UPDATE_CART_ERROR --> RETRY")
+                    else:
+                        rospy.sleep(1)
                     _state = MainState.SEND_GOTO_OUT_OF_HUB
-                    # self.db.saveStatusCartData("status_cart", "no_cart")
+                    self.db.saveStatusCartData("status_cart", "no_cart")
                 else:
                     self.lift_msg.stamp = rospy.Time.now()
                     self.lift_msg.data = LIFT_DOWN
@@ -3032,6 +3322,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
              #####..#######.#.....#.######......#####..#######....#######.#.....#.#######.
             #.....#.#.......##....#.#.....#....#.....#.#.....#....#.....#.#.....#....#....
             #.......#.......#.#...#.#.....#....#.......#.....#....#.....#.#.....#....#....
@@ -3042,13 +3339,7 @@ class PassboxAction(object):
             # State: SEND_GOTO_OUT_OF_HUB
             elif _state == MainState.SEND_GOTO_OUT_OF_HUB:
                 rospy.logwarn("send goto out of hub state")
-
-                if floor_equal:
-                    self.moving_control_client.send_goal(self.undocking_goal, feedback_cb=self.moving_control_fb,
-                )
-                else:
-                    self.moving_control_client.send_goal(self.lift_undocking_goal, feedback_cb=self.moving_control_fb,
-                )
+                self.moving_control_client.send_goal(self.undocking_goal, feedback_cb=self.moving_control_fb,)
                 self.moving_control_result = -1
                 self.last_moving_control_fb = rospy.get_time()
                 _state = MainState.GOING_TO_OUT_OF_HUB
@@ -3059,6 +3350,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
 
 
             # ..######....#######...........#######..##.....##.########.........##.....##....###....########.########.##.....##....###....##....##
@@ -3071,7 +3369,7 @@ class PassboxAction(object):
             # State: GOING_TO_OUT_OF_HUB
             elif _state == MainState.GOING_TO_OUT_OF_HUB:
                 rospy.logwarn("going to out of hub state")
-                if direction == FORWARD:
+                if self.direction == FORWARD:
                     if self.enable_safety:
                         self.safety_job_name = safety_job_undocking_backward
                     else:
@@ -3130,6 +3428,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
             ######..#..........#.....#####..#######.......#.....#####..#.....#.
             #.....#.#.........#.#...#.....#.#............#.#...#.....#.#.....#.
             #.....#.#........#...#..#.......#...........#...#..#.......#.....#.
@@ -3148,7 +3453,7 @@ class PassboxAction(object):
                     modbus_tcp_passbox.write_slave(1,open_barie_dirty_side, [1])
                 if modbus_tcp_passbox.read_slave(1,barie_state, 1)[0] == 2:
                     _state = MainState.SEND_GO_OUT_TO_WAITINNG
-                    modbus_tcp_passbox.write_slave(1,open_barie_dirty_side,0) 
+                    modbus_tcp_passbox.write_slave(1,open_barie_dirty_side,0)
                 if self._asm.pause_req:
                     self._asm.reset_flag()
                     self.moving_control_run_pause_pub.publish(
@@ -3156,6 +3461,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
 
 
             # .#####..........#######.#.....#.#######.........#######.#######.........
@@ -3193,6 +3505,13 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
 
 
             # ..######....#######...........#######..##.....##.########.........##.....##....###....########.########.##.....##....###....##....##
@@ -3205,7 +3524,7 @@ class PassboxAction(object):
             # State: GOING_TO_OUT_OF_HUB
             elif _state == MainState.GO_OUT_TO_WAITINNG:
                 rospy.logwarn("go out to waiting state")
-                if direction == FORWARD:
+                if self.direction == FORWARD:
                     if self.enable_safety:
                         self.safety_job_name = safety_job_undocking_backward
                     else:
@@ -3217,9 +3536,10 @@ class PassboxAction(object):
                         self.safety_job_name = ""
                 if self.moving_control_result == GoalStatus.SUCCEEDED:
                     modbus_tcp_passbox.write_slave(1,close_barie_dirty_side,1)
-                if modbus_tcp_passbox.read_slave(1,barie_state, 1)[0] == 1:
-                    modbus_tcp_passbox.write_slave(1,close_barie_dirty_side,0)                      
-                    _state = MainState.DONE
+                    self.last_moving_control_fb = rospy.get_time()  # reset để tránh timeout khi chờ barie đóng
+                    if modbus_tcp_passbox.read_slave(1,barie_state, 1)[0] == 1:
+                        modbus_tcp_passbox.write_slave(1,close_barie_dirty_side,0)
+                        _state = MainState.DONE
                 elif (
                     self.moving_control_result != GoalStatus.SUCCEEDED
                     and self.moving_control_result != GoalStatus.ACTIVE
@@ -3230,7 +3550,7 @@ class PassboxAction(object):
                             GoalStatus.to_string(self.moving_control_result)
                         )
                     )
-                    _state_bf_error = MainState.SEND_GO_OUT_TO_WAITINNG
+                    _state_bf_error = MainState.GO_OUT_TO_WAITINNG
                     _state_when_error = _state
                     _state = MainState.MOVING_ERROR
                 if rospy.get_time() - self.last_moving_control_fb >= 5.0:
@@ -3238,7 +3558,7 @@ class PassboxAction(object):
                     self.send_feedback(
                         self._as, GoalStatus.to_string(GoalStatus.ABORTED)
                     )
-                    _state_bf_error = MainState.SEND_GO_OUT_TO_WAITINNG
+                    _state_bf_error = MainState.GO_OUT_TO_WAITINNG
                     _state_when_error = _state
                     _state = MainState.MOVING_DISCONNECTED
                 if self._asm.pause_req:
@@ -3248,6 +3568,14 @@ class PassboxAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
+                if modbus_tcp_passbox.read_slave(1,lift_table_state, 1)[0] == 2: 
+                    self._asm.reset_flag()
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="PAUSE")
+                    )
+                    _state_when_pause = _state
+                    _state = MainState.ERROR_LIFT_TABLE 
+                
 
             # """
             # .########...#######..##....##.########
@@ -3260,8 +3588,6 @@ class PassboxAction(object):
             # """
             # State: DONE
             elif _state == MainState.DONE:
-                if modbus_tcp_passbox.read_slave_3(1, emg_agv_request, 1)[0] == 1:
-                    modbus_tcp_passbox.write_slave(1, emg_agv_request, 0)
                 rospy.logwarn("done state")
                 self.dynamic_reconfig_movebase(self.vel_move_base,  publish_safety=False, stop_center_qr=False)
                 if goal_type == PLACE:
@@ -3285,6 +3611,15 @@ class PassboxAction(object):
                         StringStamped(stamp=rospy.Time.now(), data="RUN")
                     )
                     _state = _state_when_pause
+            # State: DETECT_MIRROR_ERROR
+            elif _state == MainState.DETECT_MIRROR_ERROR:
+                self._asm.module_status = ModuleStatus.ERROR
+                self._asm.error_code = "/passbox_server: {}".format(
+                    _state.toString()
+                )
+                if self._asm.reset_error_request:
+                    self._asm.reset_flag()
+                    _state = _state_when_error
             # State: EMG_AGV
             elif _state == MainState.EMG_AGV:
                 if self.first_emg_agv == -1:
@@ -3299,10 +3634,26 @@ class PassboxAction(object):
                         )
                         _state = _state_when_emg_agv
                         _state = _state_when_pause
+            # ERROR_LIFT_TABLE
+            elif _state == MainState.ERROR_LIFT_TABLE:
+                if self._asm.resume_req:
+                    self._asm.reset_flag()
+                    rospy.logerr("RESUME state")
+                    self.moving_control_run_pause_pub.publish(
+                        StringStamped(stamp=rospy.Time.now(), data="RUN")
+                    )
+                    _state = _state_when_pause
         rospy.logwarn("Close connect to plc")
         modbus_tcp_passbox.disconnect()
         rospy.logwarn("Closed connect to plc when finish")
         self._asm.action_running = False
+        # ################# hardcode tắt safety job #################
+        self.safety_job_name = ""
+        msg = StringStamped()
+        msg.stamp = rospy.Time.now()
+        msg.data = self.safety_job_name
+        self.safety_job_pub.publish(msg)
+        # ################# end hardcode tắt safety job #################
         if success:
             rospy.loginfo("%s: Succeeded" % self._action_name)
             self._as.set_succeeded(self._result)
@@ -3713,23 +4064,35 @@ class PassboxAction(object):
         cos_yaw = cos(yaw_m[2])
         sin_yaw = sin(yaw_m[2])
 
+        if self.choose_config_docking:
+            hub_x_offset = self.mirror_offsets_lift["hub"]["x_offset"]
+            hub_y_offset = self.mirror_offsets_lift["hub"]["y_offset"]
+        else:
+            hub_x_offset = self.mirror_offsets["hub"]["x_offset"]
+            hub_y_offset = self.mirror_offsets["hub"]["y_offset"]
         # Hub position
-        hub_x_offset = self.mirror_offsets["hub"]["x_offset"]
-        hub_y_offset = self.mirror_offsets["hub"]["y_offset"]
         x_hub = x_m + hub_x_offset * cos_yaw - hub_y_offset * sin_yaw
         y_hub = y_m + hub_x_offset * sin_yaw + hub_y_offset * cos_yaw
         yaw_hub = yaw_m[2]
 
         # Waiting position
-        wait_x_offset = self.mirror_offsets["waiting"]["x_offset"]
-        wait_y_offset = self.mirror_offsets["waiting"]["y_offset"]
+        if self.choose_config_docking:
+            wait_x_offset = self.mirror_offsets_lift["waiting"]["x_offset"]
+            wait_y_offset = self.mirror_offsets_lift["waiting"]["y_offset"]
+        else:
+            wait_x_offset = self.mirror_offsets["waiting"]["x_offset"]
+            wait_y_offset = self.mirror_offsets["waiting"]["y_offset"]
         x_wait = x_m + wait_x_offset * cos_yaw - wait_y_offset * sin_yaw
         y_wait = y_m + wait_x_offset * sin_yaw + wait_y_offset * cos_yaw
         yaw_wait = yaw_m[2]
 
         # Temp position
-        temp_x_offset = self.mirror_offsets["temp"]["x_offset"]
-        temp_y_offset = self.mirror_offsets["temp"]["y_offset"]
+        if self.choose_config_docking:
+            temp_x_offset = self.mirror_offsets_lift["temp"]["x_offset"]
+            temp_y_offset = self.mirror_offsets_lift["temp"]["y_offset"]
+        else:
+            temp_x_offset = self.mirror_offsets["temp"]["x_offset"]
+            temp_y_offset = self.mirror_offsets["temp"]["y_offset"]
         x_temp = x_m + temp_x_offset * cos_yaw - temp_y_offset * sin_yaw
         y_temp = y_m + temp_x_offset * sin_yaw + temp_y_offset * cos_yaw
         yaw_temp = yaw_m[2]
@@ -3891,7 +4254,7 @@ class PassboxAction(object):
     def transform_pose_map_to_odom(self, pose_in_map):
         """Chuyển đổi Pose từ frame map sang frame odom."""
         pose_stamped = PoseStamped()
-        pose_stamped.header.stamp = rospy.Time.now()
+        pose_stamped.header.stamp = rospy.Time(0)
         pose_stamped.header.frame_id = "map"
         pose_stamped.pose = pose_in_map
         try:
@@ -4002,3 +4365,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

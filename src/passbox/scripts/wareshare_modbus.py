@@ -21,10 +21,43 @@ EMG_WHEN_CLEAN_SIDE = 8
 # OUTPUT WAREHOUSE, INPUT AGV (AGV gửi tín hiệu về warehouse)
 DONE_OPEN_DIRTY_SIDE = 2
 DONE_CLOSE_DIRTY_SIDE = 1
-DONE_OPEN_CLEAN_SIDE = 4
-DONE_CLOSE_CLEAN_SIDE = 3
+DONE_OPEN_CLEAN_SIDE = 3
+DONE_CLOSE_CLEAN_SIDE = 4
 EMG_DIRTY_SIDE = 5
 EMG_CLEAN_SIDE = 6
+
+
+def check_connect(client):
+    """
+    Kiểm tra và đảm bảo kết nối Modbus TCP.
+    
+    Args:
+        client: ModbusTcpClient object
+        
+    Returns:
+        True nếu kết nối thành công hoặc đã sẵn sàng, False nếu thất bại.
+    """
+    try:
+        # Trong pymodbus sync client, connect() trả về True nếu đã kết nối hoặc kết nối mới thành công
+        return client.connect()
+    except Exception as e:
+        print(f"✗ Lỗi kết nối Modbus: {e}")
+        return False
+
+
+def disconnect(client):
+    """
+    Đóng kết nối Modbus TCP.
+    
+    Args:
+        client: ModbusTcpClient object
+    """
+    try:
+        if client:
+            client.close()
+            print("✓ Đã đóng kết nối Modbus.")
+    except Exception as e:
+        print(f"✗ Lỗi khi đóng kết nối Modbus: {e}")
 
 
 def read_input_bit(client, bit_address):
@@ -171,6 +204,19 @@ def write_all_output_bits(client, bits):
         return False
 
 
+def clear_all_output_bits(client):
+    """
+    Ghi tất cả 8 bit output về giá trị False (0)
+    
+    Args:
+        client: ModbusTcpClient object
+        
+    Returns:
+        True nếu thành công, False nếu lỗi
+    """
+    return write_all_output_bits(client, [False] * 8)
+
+
 def sync_in_out():
     # Khởi tạo kết nối
     client = ModbusTcpClient(SERVER_IP, port=PORT)
@@ -183,13 +229,13 @@ def sync_in_out():
 
     while True:
         try:
-            if not client.connect():
+            if not check_connect(client):
                 print("Mất kết nối! Đang thử kết nối lại...")
                 time.sleep(2)
                 continue
-            input_data = read_input_bit(client, 2)
-            print(input_data)
-            write_output_bit(client, 2, 0)
+            # input_data = read_input_bit(client, 2)
+            # print(input_data)
+            write_output_bit(client, 1, 0)
         except KeyboardInterrupt:
             print("\nĐang dừng chương trình...")
             break

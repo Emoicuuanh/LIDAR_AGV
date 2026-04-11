@@ -3,71 +3,74 @@ from pymodbus.exceptions import ModbusException
 import rospy
 import time
 import threading
+import sys
 import wareshare_modbus
 modbus_lock = threading.Lock()
 
-def log(slave_id, msg_type, message):
-    """Simple logging function"""
-    rospy.loginfo(f"[Slave {slave_id}] {msg_type}: {message}")
-
-def write_slave(slave_id, start_addr, values):
-    global modbus_lock
-    max_retries = 3  # Thử lại tối đa 3 lần nếu lỗi
-    for attempt in range(max_retries):
-        try:
-            with modbus_lock:
-                response = client.write_registers(start_addr, values, unit=slave_id)
-            if response.isError():
-                rospy.logwarn(f"[Slave {slave_id}] Write attempt {attempt+1} failed: {response}")
-                continue # Thử lại vòng lặp kế tiếp
-            else:
-                return True
-        except Exception as e:
-            rospy.logwarn(f"[Slave {slave_id}] Write Exception attempt {attempt+1}: {e}")
-    # Nếu hết 3 lần vẫn lỗi thì mới log lỗi và trả về False
-    log(slave_id, "WRITE_ERROR", f"Failed after {max_retries} retries")
-    print(f"\033[91m[Slave {slave_id}] WRITE FAILED after retries\033[0m")
-    return False
-
-# ================== ĐỌC MODBUS ==================
-def read_slave(slave_id, start_addr=65, count=64):
-    global modbus_lock
-    try:
-        t0 = time.time()
-        with modbus_lock:
-            response = client.read_holding_registers(start_addr, count, unit=slave_id)
-        elapsed = time.time() - t0
-
-        if response.isError():
-            print(f"\033[91m[Slave {slave_id}] LỖI: {response}\033[0m")
-            log(slave_id, "ERROR", str(response))
-            return None, elapsed
-        else:
-            return response.registers, elapsed
-    except ModbusException as e:
-        print(f"\033[91m[Slave {slave_id}] ModbusException: {e}\033[0m")
-        log(slave_id, "ERROR", str(e))
-        return None, 0.0
-    except Exception as e:
-        print(f"\033[91m[Slave {slave_id}] Lỗi: {e}\033[0m")
-        log(slave_id, "ERROR", str(e))
-        return None, 0.0
-    
 if __name__ == "__main__":
     rospy.init_node("modbus_tcp_publisher", anonymous=False)
     wareshare_ip = rospy.get_param("~wareshare_ip", "192.168.1.200")
     wareshare_port = rospy.get_param("~wareshare_port", 502)
     rospy.loginfo("Connecting to Wareshare: {}:{}".format(wareshare_ip, wareshare_port))
-    wareshare = ModbusTcpClient(wareshare_ip, wareshare_port)
-    wareshare.connect()
     
+    wareshare = ModbusTcpClient(wareshare_ip, wareshare_port)
+    is_connected = wareshare.connect()
+    
+    if is_connected:
+        rospy.loginfo("=== KET NOI THANH CONG VOI WARESHARE PLC ===")
+    else:
+        rospy.logerr("=== LOI: KHONG KET NOI DUOC VOI WARESHARE ===")
+        rospy.logerr("Vui long kiem tra lai day mang, dia chi IP, hoac khoi dong lai thiet bi.")
+        sys.exit(1)
+
     rate = rospy.Rate(15)  # 15 Hz
-    while not rospy.is_shutdown():
-        # Đúng cách gọi: wareshare_modbus.write_output_bit(client, bit_address, value)
-        wareshare_modbus.write_output_bit(wareshare, 1, 1)        
-        rate.sleep()
-        wareshare_modbus.write_output_bit(wareshare, 1, 0)        
-        rate.sleep()
-    # Đóng kết nối khi shutdown
+    # Đúng cách gọi: wareshare_modbus.write_output_bit(client, bit_address, value)
+    wareshare_modbus.write_output_bit(wareshare, 1, 0)
+    wareshare_modbus.write_output_bit(wareshare, 2, 0)
+    wareshare_modbus.write_output_bit(wareshare, 3, 0)
+    wareshare_modbus.write_output_bit(wareshare, 4, 0)
+    wareshare_modbus.write_output_bit(wareshare, 5, 0)
+    wareshare_modbus.write_output_bit(wareshare, 6, 0)
+    wareshare_modbus.write_output_bit(wareshare, 7, 0)
+    wareshare_modbus.write_output_bit(wareshare, 8, 0)
+    print(wareshare_modbus.read_input_bit(wareshare, 1))
+    time.sleep(2)
+    wareshare_modbus.write_output_bit(wareshare, 1, 1)
+    rospy.loginfo("bat bit 1")
+    time.sleep(5)
+    print(wareshare_modbus.read_input_bit(wareshare, 2))
+    wareshare_modbus.write_output_bit(wareshare, 1, 0)
+    time.sleep(2)
+    wareshare_modbus.write_output_bit(wareshare, 2, 1)
+    rospy.loginfo("bat bit 2")
+    time.sleep(5)
+    print(wareshare_modbus.read_input_bit(wareshare, 1))
+    wareshare_modbus.write_output_bit(wareshare, 2, 0)
+    # wareshare_modbus.write_output_bit(wareshare, 3, 1)
+    # rospy.loginfo("bat bit 3")
+    # time.sleep(5)
+    # wareshare_modbus.write_output_bit(wareshare, 3, 0)
+    # wareshare_modbus.write_output_bit(wareshare, 4, 1)
+    # rospy.loginfo("bat bit 1")
+    # time.sleep(5)
+    # wareshare_modbus.write_output_bit(wareshare, 4, 0)
+    # wareshare_modbus.write_output_bit(wareshare, 5, 1)
+    # rospy.loginfo("bat bit 5")
+    # time.sleep(3)
+    # wareshare_modbus.write_output_bit(wareshare, 5, 0)
+    # wareshare_modbus.write_output_bit(wareshare, 6, 1)
+    # rospy.loginfo("bat bit 6")
+    # time.sleep(3)
+    # wareshare_modbus.write_output_bit(wareshare, 6, 0)
+    # wareshare_modbus.write_output_bit(wareshare, 7, 1)
+    # rospy.loginfo("bat bit 1")
+    # time.sleep(5)
+    # wareshare_modbus.write_output_bit(wareshare, 7, 0)
+    # wareshare_modbus.write_output_bit(wareshare, 8, 1)
+    # rospy.loginfo("bat bit 1")
+    # time.sleep(5)
+    # wareshare_modbus.write_output_bit(wareshare, 8, 0)
+    # print(wareshare_modbus.read_input_bit(wareshare, 4))
+# Đóng kết nối khi shutdown
     wareshare.close()
     rospy.loginfo("Modbus TCP connection closed.")

@@ -5,8 +5,8 @@ import time
 import threading
 
 # --- CẤU HÌNH THÔNG SỐ ---
-PLC_IP = '10.23.112.250'  # IP của PLC
-PLC_PORT = 502
+PLC_IP = '192.86.11.191'  # IP của PLC
+PLC_PORT = 5000
 UNIT_ID = 1
 
 # Global client
@@ -81,6 +81,52 @@ def write_slave(slave_id, start_addr, values):
 
 # ================== ĐỌC MODBUS ==================
 def read_slave(slave_id, start_addr, count):
+    global modbus_lock
+    try:
+        t0 = time.time()
+        with modbus_lock:
+            response = client.read_input_registers(start_addr, count, unit=slave_id)
+        elapsed = time.time() - t0
+
+        if response.isError():
+            print(f"\033[91m[Slave {slave_id}] LỖI: {response}\033[0m")
+            log(slave_id, "ERROR", str(response))
+            return None, elapsed
+        else:
+            return response.registers
+    except ModbusException as e:
+        print(f"\033[91m[Slave {slave_id}] ModbusException: {e}\033[0m")
+        log(slave_id, "ERROR", str(e))
+        return None, 0.0
+    except Exception as e:
+        print(f"\033[91m[Slave {slave_id}] Lỗi: {e}\033[0m")
+        log(slave_id, "ERROR", str(e))
+        return None, 0.0
+        
+def read_slave_2():
+    global modbus_lock
+    try:
+        t0 = time.time()
+        with modbus_lock:
+            response = client.read_holding_registers(6, 1, 1)
+        elapsed = time.time() - t0
+
+        if response.isError():
+            print(f"\033[91m[Slave {slave_id}] LỖI: {response}\033[0m")
+            log(slave_id, "ERROR", str(response))
+            return None, elapsed
+        else:
+            return response.registers
+    except ModbusException as e:
+        print(f"\033[91m[Slave {slave_id}] ModbusException: {e}\033[0m")
+        log(slave_id, "ERROR", str(e))
+        return None, 0.0
+    except Exception as e:
+        print(f"\033[91m[Slave {slave_id}] Lỗi: {e}\033[0m")
+        log(slave_id, "ERROR", str(e))
+        return None, 0.0
+        
+def read_slave_3(slave_id, start_addr, count):
     global modbus_lock
     try:
         t0 = time.time()

@@ -165,9 +165,9 @@ EMG_WHEN_CLEAN_SIDE = 8
 # OUTPUT WAREHOUSE, INPUT AGV (AGV gửi tín hiệu về warehouse)
 DONE_OPEN_DIRTY_SIDE = 2
 DONE_CLOSE_DIRTY_SIDE = 1
-DONE_OPEN_CLEAN_SIDE = 4
-DONE_CLOSE_CLEAN_SIDE = 3
-EMG_DIRTY_SIDE = 5
+DONE_CLOSE_CLEAN_SIDE = 4
+DONE_OPEN_CLEAN_SIDE = 5
+EMG_DIRTY_SIDE = 3
 EMG_CLEAN_SIDE = 6
 
 class PassboxEqualAction(object):
@@ -304,6 +304,7 @@ class PassboxEqualAction(object):
         self.wareshare_port = rospy.get_param("~wareshare_port", 502)
         rospy.loginfo("Wareshare config: {}:{} (will connect when mission starts)".format(self.wareshare_ip, self.wareshare_port))
         self.wareshare = ModbusTcpClient(self.wareshare_ip, self.wareshare_port)
+        wareshare_modbus.disconnect(self.wareshare)
         # Không kết nối ngay khi khởi động - sẽ kết nối khi có mission vào execute_cb
 
         self.first_emg_agv = -1
@@ -702,7 +703,7 @@ class PassboxEqualAction(object):
                 hub_pose_y = hub_pose[1]
 
 
-            self.type = "PASSBOX"
+            self.type = "HUB"
             self.name = data_dict["params"]["name"]
             self.cell = 0  # data_dict["params"]["cell"]
             self.cart = data_dict["params"]["cart"]
@@ -855,7 +856,7 @@ class PassboxEqualAction(object):
             hub_pose_y = data_dict["params"]["position"]["y"]
             waiting_pose_x = self.trans[0]
             waiting_pose_y = self.trans[1]
-            self.type = "PASSBOX"
+            self.type = "HUB"
             self.name = "AGV 01"
             self.cell = 0
             self.cart = "VRACK"
@@ -1349,19 +1350,15 @@ class PassboxEqualAction(object):
                         rospy.logwarn(f"Target angle for detect mirror: {degrees(target_angle):.2f} deg")
                         rospy.logwarn(f"Current angle for detect mirror: {degrees(current_angle):.2f} deg")
                         rospy.logwarn(f"Angle difference: {angle_diff_deg:.2f} deg")
-                        # if angle_diff_deg > 30 and angle_diff_deg < 150:
-                        #     rospy.logwarn("Angle detect mirror difference requires rotation, rotating robot...")
-                        #     # Chuyển sang trạng thái xoay robot
-                        #     _state = MainState.SEND_ROTATE_FIND_MIRROR
-                        #     continue
-                        # else:
-                        #     _state_when_error = _state
-                        #     _state = MainState.DETECT_MIRROR_ERROR
-                        #     continue
-                        rospy.logwarn("Angle detect mirror difference requires rotation, rotating robot...")
-                        # Chuyển sang trạng thái xoay robot
-                        _state = MainState.SEND_ROTATE_FIND_MIRROR
-                        continue
+                        if angle_diff_deg > 30 and angle_diff_deg < 150:
+                            rospy.logwarn("Angle detect mirror difference requires rotation, rotating robot...")
+                            # Chuyển sang trạng thái xoay robot
+                            _state = MainState.SEND_ROTATE_FIND_MIRROR
+                            continue
+                        else:
+                            _state_when_error = _state
+                            _state = MainState.DETECT_MIRROR_ERROR
+                            continue
                     else:
                         self.send_request_get_mirror(
                             self.calculate_pose_offset(
@@ -1435,10 +1432,16 @@ class PassboxEqualAction(object):
                         rospy.logwarn(f"Target angle for detect mirror: {degrees(target_angle):.2f} deg")
                         rospy.logwarn(f"Current angle for detect mirror: {degrees(current_angle):.2f} deg")
                         rospy.logwarn(f"Angle difference: {angle_diff_deg:.2f} deg")
-                        rospy.logwarn("Angle detect mirror difference requires rotation, rotating robot...")
-                        # Chuyển sang trạng thái xoay robot
-                        _state = MainState.SEND_ROTATE_FIND_MIRROR
-                        continue
+                        rospy.logwarn(f"Angle difference: {angle_diff_deg:.2f} deg")
+                        if angle_diff_deg > 30 and angle_diff_deg < 150:
+                            rospy.logwarn("Angle detect mirror difference requires rotation, rotating robot...")
+                            # Chuyển sang trạng thái xoay robot
+                            _state = MainState.SEND_ROTATE_FIND_MIRROR
+                            continue
+                        else:
+                            _state_when_error = _state
+                            _state = MainState.DETECT_MIRROR_ERROR
+                            continue
                     else:
                         self.send_request_get_mirror(
                             self.calculate_pose_offset(
@@ -1626,7 +1629,7 @@ class PassboxEqualAction(object):
                 if not check_connect(self.wareshare):
                     rospy.logerr_throttle(5.0, "Connect to passbox error. Attempting to reconnect...")
                     try:
-                        self.wareshare.disconnect() # Đảm bảo đóng socket cũ trước khi tạo cái mới
+                        wareshare_modbus.disconnect(self.wareshare) # Đảm bảo đóng socket cũ trước khi tạo cái mới
                         self.wareshare.connect()
                     except Exception as e:
                         rospy.logerr_throttle(5.0, "Reconnection attempt failed: {}".format(e))
@@ -1901,7 +1904,7 @@ class PassboxEqualAction(object):
                         # Chỉ gửi tín hiệu mở nếu chưa hoàn thành
                         wareshare_modbus.write_output_bit(self.wareshare, OPEN_CLEAN_SIDE, 1)
                     else:
-                        _state = MainState.SEND_GOTO_TEMP_POSE
+                    	_state = MainState.SEND_GOTO_TEMP_POSE
                 else:
                     done = wareshare_modbus.read_input_bit(self.wareshare, DONE_OPEN_DIRTY_SIDE)
                     rospy.logwarn(f"DONE_OPEN_DIRTY_SIDE: {done}")
@@ -1938,6 +1941,7 @@ class PassboxEqualAction(object):
                             ),
                             self.length_hub,
                             True,
+                            True
                         )
                         rospy.sleep(1)
                         if not self.compute_goals_from_mirror({
@@ -2004,6 +2008,7 @@ class PassboxEqualAction(object):
                             ),
                             self.length_hub,
                             True,
+                            True
                         )
                         rospy.sleep(1)
                         if not self.compute_goals_from_mirror({
@@ -2359,8 +2364,18 @@ class PassboxEqualAction(object):
                             continue
 
                 if self.moving_control_result == GoalStatus.SUCCEEDED:
-                    wareshare_modbus.write_output_bit(self.wareshare, OPEN_CLEAN_SIDE, 0)
-                    wareshare_modbus.write_output_bit(self.wareshare, OPEN_DIRTY_SIDE, 0)
+                    if is_from_clean_room:
+                        wareshare_modbus.write_output_bit(self.wareshare, OPEN_CLEAN_SIDE, 0)
+                        time.sleep(1)
+                        wareshare_modbus.write_output_bit(self.wareshare, CLOSE_CLEAN_SIDE, 1)
+                        time.sleep(1)
+                        wareshare_modbus.write_output_bit(self.wareshare, CLOSE_CLEAN_SIDE, 0)
+                    else:
+                        wareshare_modbus.write_output_bit(self.wareshare, OPEN_DIRTY_SIDE, 0)
+                        time.sleep(1)
+                        wareshare_modbus.write_output_bit(self.wareshare, CLOSE_DIRTY_SIDE, 1)
+                        time.sleep(1)
+                        wareshare_modbus.write_output_bit(self.wareshare, CLOSE_DIRTY_SIDE, 0)
                     _state = MainState.DONE
                 elif (
                     self.moving_control_result != GoalStatus.SUCCEEDED

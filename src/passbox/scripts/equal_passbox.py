@@ -165,8 +165,8 @@ EMG_WHEN_CLEAN_SIDE = 8
 # OUTPUT WAREHOUSE, INPUT AGV (AGV gửi tín hiệu về warehouse)
 DONE_OPEN_DIRTY_SIDE = 2
 DONE_CLOSE_DIRTY_SIDE = 1
-DONE_OPEN_CLEAN_SIDE = 4
-DONE_CLOSE_CLEAN_SIDE = 3
+DONE_OPEN_CLEAN_SIDE = 3
+DONE_CLOSE_CLEAN_SIDE = 4
 EMG_DIRTY_SIDE = 5
 EMG_CLEAN_SIDE = 6
 
@@ -302,9 +302,12 @@ class PassboxEqualAction(object):
         self.vel_move_base = 0.8
         self.wareshare_ip = rospy.get_param("~wareshare_ip", "192.168.1.200")
         self.wareshare_port = rospy.get_param("~wareshare_port", 502)
-        rospy.loginfo("Wareshare config: {}:{} (will connect when mission starts)".format(self.wareshare_ip, self.wareshare_port))
+        rospy.loginfo("Connecting to Wareshare: {}:{}".format(self.wareshare_ip, self.wareshare_port))
         self.wareshare = ModbusTcpClient(self.wareshare_ip, self.wareshare_port)
-        # Không kết nối ngay khi khởi động - sẽ kết nối khi có mission vào execute_cb
+        if self.wareshare.connect():
+            rospy.loginfo("Connected to Wareshare success")
+        else:
+            rospy.logerr("Connected to Wareshare failed")
 
         self.first_emg_agv = -1
 
@@ -636,9 +639,9 @@ class PassboxEqualAction(object):
         self.direction = BACKWARD
         self.enable_safety = False
 
-        # is_from_clean_room=True: AGV và hub cùng tầng (dùng inside_pose)
-        # is_from_clean_room=False: AGV và hub khác tầng (dùng waiting_pose để đến lift)
-        is_from_clean_room = data_dict["params"]["is_from_clean_room"]
+        # floor_equal=True: AGV và hub cùng tầng (dùng inside_pose)
+        # floor_equal=False: AGV và hub khác tầng (dùng waiting_pose để đến lift)
+        floor_equal = data_dict["params"]["floor_equal"]
 
         # Direction mặc định: PICK = FORWARD (quay đầu vào hub), PLACE = BACKWARD (lùi vào hub)
         # Có thể bị override bởi property "invert" bên dưới
@@ -660,7 +663,7 @@ class PassboxEqualAction(object):
             inside_pose_x = data_dict["params"]["inside_position"]["x"]
             inside_pose_y = data_dict["params"]["inside_position"]["y"]
 
-            if is_from_clean_room:
+            if floor_equal:
                 # Tính distance từ hub đến lift_pose ban đầu
                 self.initial_hub_to_waiting_distance = distance_two_points(
                     hub_pose_x, hub_pose_y, inside_pose_x, inside_pose_y
@@ -702,7 +705,7 @@ class PassboxEqualAction(object):
                 hub_pose_y = hub_pose[1]
 
 
-            self.type = "PASSBOX"
+            self.type = "PASSBOX_EQUAL"
             self.name = data_dict["params"]["name"]
             self.cell = 0  # data_dict["params"]["cell"]
             self.cart = data_dict["params"]["cart"]
@@ -855,7 +858,7 @@ class PassboxEqualAction(object):
             hub_pose_y = data_dict["params"]["position"]["y"]
             waiting_pose_x = self.trans[0]
             waiting_pose_y = self.trans[1]
-            self.type = "PASSBOX"
+            self.type = "PASSBOX_EQUAL"
             self.name = "AGV 01"
             self.cell = 0
             self.cart = "VRACK"
@@ -867,7 +870,7 @@ class PassboxEqualAction(object):
             FAKE_QR_CODE = True
         # PICK: quay đầu vào hub (FORWARD), PLACE: lùi vào hub (BACKWARD)
         # direction có thể đã bị override bởi property "invert"
-        if is_from_clean_room:
+        if floor_equal:
             if self.direction == FORWARD:
                 cur_orient = atan2(
                     hub_pose_y - inside_pose_y, hub_pose_x - inside_pose_x
@@ -950,7 +953,7 @@ class PassboxEqualAction(object):
             )
         )
 
-        if is_from_clean_room:
+        if floor_equal:
             # ============================================================
             # CALCULATE DOCKING GOAL
             # ============================================================
@@ -1151,14 +1154,15 @@ class PassboxEqualAction(object):
         _state_when_network_timeout = MainState.NONE # Lưu state tại thời điểm timeout trước khi set state mất kết nối plc
         first_go_to_waiting = True  # Flag for first time going to waiting position
         disable_auto_get_center_tape = False  # Flag for auto center tape detection
-        # Kết nối tới Wareshare khi có mission vào execute_cb
-        rospy.logwarn("Mission received - connecting to Wareshare {}:{}".format(self.wareshare_ip, self.wareshare_port))
-        self.wareshare.connect()
+        # Reconnect nếu bị disconnect từ action trước (disconnect() gọi cuối mỗi action)
+        if not check_connect(self.wareshare):
+            rospy.logwarn("PLC disconnected, reconnecting...")
+            self.wareshare.connect()
         if check_connect(self.wareshare):
             rospy.sleep(1)
-            rospy.logwarn("connect passbox success")
+            rospy.logwarn("connect passbox success first time")
         else:
-            rospy.logwarn("connect passbox failed")
+            rospy.logwarn("connect passbox false first time")
         while not rospy.is_shutdown():
             try:
                 if not check_connect(self.wareshare):
@@ -1196,10 +1200,8 @@ class PassboxEqualAction(object):
                     "reset_action_req : {}".format(self._asm.reset_action_req)
                 )
                 rospy.loginfo("%s: Preempted" % self._action_name)
-                wareshare_modbus.disconnect(self.wareshare)
-                rospy.logwarn("Closed connect to plc when preempted")
                 self._as.set_preempted()
-                success = False 
+                success = False
                 self.send_feedback(
                     self._as, GoalStatus.to_string(GoalStatus.PREEMPTED)
                 )
@@ -1305,7 +1307,7 @@ class PassboxEqualAction(object):
             # #######.................................
             elif _state == MainState.SEND_GOTO_TEMP_POSE:
                 rospy.loginfo("Send goto temp pose")
-                if is_from_clean_room:
+                if floor_equal:
                     self.send_request_get_mirror(
                         self.calculate_pose_offset(
                             0.4,
@@ -1320,7 +1322,7 @@ class PassboxEqualAction(object):
                         True,
                         True
                     )
-                    rospy.sleep(2)  # Chờ TF scan_map khởi tạo lần đầu
+                    rospy.sleep(1)
                     if not self.compute_goals_from_mirror({
                         "waiting_goal":        self.inside_goal,
                         "waiting_path_dict":   self.inside_path_dict,
@@ -1349,19 +1351,14 @@ class PassboxEqualAction(object):
                         rospy.logwarn(f"Target angle for detect mirror: {degrees(target_angle):.2f} deg")
                         rospy.logwarn(f"Current angle for detect mirror: {degrees(current_angle):.2f} deg")
                         rospy.logwarn(f"Angle difference: {angle_diff_deg:.2f} deg")
-                        # if angle_diff_deg > 30 and angle_diff_deg < 150:
-                        #     rospy.logwarn("Angle detect mirror difference requires rotation, rotating robot...")
-                        #     # Chuyển sang trạng thái xoay robot
-                        #     _state = MainState.SEND_ROTATE_FIND_MIRROR
-                        #     continue
-                        # else:
-                        #     _state_when_error = _state
-                        #     _state = MainState.DETECT_MIRROR_ERROR
-                        #     continue
-                        rospy.logwarn("Angle detect mirror difference requires rotation, rotating robot...")
-                        # Chuyển sang trạng thái xoay robot
-                        _state = MainState.SEND_ROTATE_FIND_MIRROR
-                        continue
+                        if angle_diff_deg > 30 and angle_diff_deg < 150:
+                            rospy.logwarn("Angle detect mirror difference requires rotation, rotating robot...")
+                            # Chuyển sang trạng thái xoay robot
+                            _state = MainState.SEND_ROTATE_FIND_MIRROR
+                        else:
+                            _state_when_error = _state
+                            _state = MainState.DETECT_MIRROR_ERROR
+                            continue
                     else:
                         self.send_request_get_mirror(
                             self.calculate_pose_offset(
@@ -1406,7 +1403,7 @@ class PassboxEqualAction(object):
                         True,
                         True
                     )
-                    rospy.sleep(2)  # Chờ TF scan_map khởi tạo lần đầu
+                    rospy.sleep(1)
                     if not self.compute_goals_from_mirror({
                         "waiting_goal":        self.waiting_goal,
                         "waiting_path_dict":   self.waiting_path_dict,
@@ -1435,10 +1432,14 @@ class PassboxEqualAction(object):
                         rospy.logwarn(f"Target angle for detect mirror: {degrees(target_angle):.2f} deg")
                         rospy.logwarn(f"Current angle for detect mirror: {degrees(current_angle):.2f} deg")
                         rospy.logwarn(f"Angle difference: {angle_diff_deg:.2f} deg")
-                        rospy.logwarn("Angle detect mirror difference requires rotation, rotating robot...")
-                        # Chuyển sang trạng thái xoay robot
-                        _state = MainState.SEND_ROTATE_FIND_MIRROR
-                        continue
+                        if angle_diff_deg > 30 and angle_diff_deg < 150:
+                            rospy.logwarn("Angle detect mirror difference requires rotation, rotating robot...")
+                            # Chuyển sang trạng thái xoay robot
+                            _state = MainState.SEND_ROTATE_FIND_MIRROR
+                        else:
+                            _state_when_error = _state
+                            _state = MainState.DETECT_MIRROR_ERROR
+                            continue
                     else:
                         self.send_request_get_mirror(
                             self.calculate_pose_offset(
@@ -1492,7 +1493,7 @@ class PassboxEqualAction(object):
             # #.....#.#.....#.#######.#.....#.
             # ................................
             elif _state == MainState.SEND_ROTATE_FIND_MIRROR:
-                if is_from_clean_room:
+                if floor_equal:
                     self.moving_control_client.send_goal(
                         self.inside_goal,
                         feedback_cb=self.moving_control_fb,
@@ -1704,7 +1705,7 @@ class PassboxEqualAction(object):
             # State: SEND_GOTO_WAITING
             elif _state == MainState.SEND_GOTO_WAITING:
                 rospy.loginfo("Send goto waiting")
-                if is_from_clean_room:
+                if floor_equal:
                     self.moving_control_client.send_goal(
                         self.inside_goal,
                         feedback_cb=self.moving_control_fb,
@@ -1892,23 +1893,14 @@ class PassboxEqualAction(object):
             # State: REQUEST_ENTER_PASSBOX
             elif _state == MainState.REQUEST_ENTER_PASSBOX:
                 rospy.logwarn("request enter passbox state")
-                rospy.logwarn(wareshare_modbus.read_input_bit(self.wareshare,DONE_OPEN_CLEAN_SIDE))
-                rospy.logwarn(wareshare_modbus.read_input_bit(self.wareshare,DONE_OPEN_DIRTY_SIDE))
-                if is_from_clean_room:
-                    done = wareshare_modbus.read_input_bit(self.wareshare, DONE_OPEN_CLEAN_SIDE)
-                    rospy.logwarn(f"DONE_OPEN_CLEAN_SIDE: {done}")
-                    if not done:
-                        # Chỉ gửi tín hiệu mở nếu chưa hoàn thành
-                        wareshare_modbus.write_output_bit(self.wareshare, OPEN_CLEAN_SIDE, 1)
-                    else:
+                if floor_equal:
+                    wareshare_modbus.write_output_bit(self.wareshare, OPEN_CLEAN_SIDE, 1)
+                    if(wareshare_modbus.read_input_bit(self.wareshare,DONE_OPEN_CLEAN_SIDE)):
+                        rospy.logerr("tien vao")
                         _state = MainState.SEND_GOTO_TEMP_POSE
                 else:
-                    done = wareshare_modbus.read_input_bit(self.wareshare, DONE_OPEN_DIRTY_SIDE)
-                    rospy.logwarn(f"DONE_OPEN_DIRTY_SIDE: {done}")
-                    if not done:
-                        # Chỉ gửi tín hiệu mở nếu chưa hoàn thành
-                        wareshare_modbus.write_output_bit(self.wareshare, OPEN_DIRTY_SIDE, 1)
-                    else:
+                    wareshare_modbus.write_output_bit(self.wareshare, OPEN_DIRTY_SIDE, 1)
+                    if(wareshare_modbus.read_input_bit(self.wareshare,DONE_OPEN_DIRTY_SIDE)):
                         _state = MainState.SEND_GOTO_TEMP_POSE
 
 
@@ -1924,7 +1916,7 @@ class PassboxEqualAction(object):
             # State: SEND_DOCKING_HUB
             elif _state == MainState.SEND_DOCKING_HUB:
                 rospy.logwarn("send docking hub state")
-                if is_from_clean_room:
+                if floor_equal:
                     if USE_DOCKING_BY_MIRROR:
                         self.send_request_get_mirror(
                             self.calculate_pose_offset(
@@ -2234,9 +2226,9 @@ class PassboxEqualAction(object):
                 if self.liftup_finish:
                     if self.server_config != None:
                         if self.upDateCart(
-                            self.type, self.name, self.cell, "", "", self.data
+                            self.type, self.name, self.cell, "", ""
                         ) and self.upDateCart(
-                            "AGV", self.data, 0, self.cart, self.lot, self.data
+                            "AGV", self.data, 0, self.cart, self.lot
                         ):
                             rospy.sleep(1)
                             _state = MainState.SEND_GOTO_OUT_OF_HUB
@@ -2279,8 +2271,8 @@ class PassboxEqualAction(object):
                 if self.liftdown_finish:
                     if self.server_config != None:
                         if self.upDateCart(
-                            self.type, self.name, self.cell, self.cart, self.lot, self.data
-                        ) and self.upDateCart("AGV", self.data, 0, "", "", self.data):
+                            self.type, self.name, self.cell, self.cart, self.lot
+                        ) and self.upDateCart("AGV", self.data, 0, "", ""):
                             rospy.sleep(1)
                             _state = MainState.SEND_GOTO_OUT_OF_HUB
                         else:
@@ -2359,8 +2351,17 @@ class PassboxEqualAction(object):
                             continue
 
                 if self.moving_control_result == GoalStatus.SUCCEEDED:
-                    wareshare_modbus.write_output_bit(self.wareshare, OPEN_CLEAN_SIDE, 0)
-                    wareshare_modbus.write_output_bit(self.wareshare, OPEN_DIRTY_SIDE, 0)
+                    clear_all_output_bits(self.wareshare)
+                    if floor_equal:
+                        wareshare_modbus.write_output_bit(self.wareshare, CLOSE_CLEAN_SIDE, 1)
+                        rospy.loginfo("bat bit CLOSE_CLEAN_SIDE")
+                        time.sleep(3)
+                        wareshare_modbus.write_output_bit(self.wareshare, CLOSE_CLEAN_SIDE, 0)
+                    else:
+                        wareshare_modbus.write_output_bit(self.wareshare, CLOSE_DIRTY_SIDE, 1)
+                        rospy.loginfo("bat bit CLOSE_DIRTY_SIDE")
+                        time.sleep(3)
+                        wareshare_modbus.write_output_bit(self.wareshare, CLOSE_DIRTY_SIDE, 0)
                     _state = MainState.DONE
                 elif (
                     self.moving_control_result != GoalStatus.SUCCEEDED
@@ -2841,8 +2842,8 @@ class PassboxEqualAction(object):
 
         Args:
             initial_distance (float): Khoảng cách ban đầu từ điểm chuẩn đến điểm đích
-                - is_from_clean_room=True  : self.initial_hub_to_waiting_distance (hub → inside)
-                - is_from_clean_room=False : self.initial_lift_to_waiting_distance (lift → waiting)
+                - floor_equal=True  : self.initial_hub_to_waiting_distance (hub → inside)
+                - floor_equal=False : self.initial_lift_to_waiting_distance (lift → waiting)
         """
         if not self.get_mirror():
             return False
