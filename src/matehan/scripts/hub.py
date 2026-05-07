@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from logging import debug
-from bson.json_util import dump
+from bson.json_util import dumps
 import os
 import sys
 import rospy
@@ -123,6 +123,8 @@ class MainState(EnumString):
     EMG_AGV = 33
     LECH_TAM = 34
     ALIGNMENT_SENSOR = 35
+    SEND_ROTATE_INIT = 70
+    ROTATING_INIT = 71
     LIFT_MIN_END = 36
     LIFT_MIN_FIRST = 37
     LIFT_MAX_FIRST = 38
@@ -307,7 +309,9 @@ class HubAction(object):
         self.qr_angle = None
         self.vel = Twist()
         self.lift_timer = None
-
+        self.init_angle = 30
+        self.count_rotate = 0
+        self.search_base_angle = None
 
         self.use_new_traffic_control = False
 
@@ -805,7 +809,10 @@ class HubAction(object):
             cur_orient = atan2(
                 waiting_pose_y - hub_pose_y, waiting_pose_x - hub_pose_x
             )
-
+        orientation_hub_to_waiting_pose = atan2(waiting_pose_y - hub_pose_y,
+              waiting_pose_x - hub_pose_x)
+        orientation_waiting_to_hub_pose = atan2(hub_pose_y - waiting_pose_y,
+              hub_pose_x - waiting_pose_x)
         # Calculate waiting goal
         self.waiting_goal = StringGoal()
         waiting_pose = self.calculate_pose_offset(
@@ -1021,7 +1028,7 @@ class HubAction(object):
                     vel_docking_hub, publish_safety=False, stop_center_qr=False
                 )
                 if USE_DOCKING_BY_MIRROR:
-                    _state = MainState.SEND_GOTO_TEMP_POSE
+                    _state = MainState.SEND_ROTATE_INIT
                 else:
                     _state = MainState.SEND_GOTO_WAITING
                 if self._asm.pause_req:
@@ -1124,35 +1131,43 @@ class HubAction(object):
                         ),
                     ),
                     True,
+                    orientation_hub_to_waiting_pose,
                     True
                 )
                 rospy.sleep(1)
-                if not self.compute_goals_from_mirror():
-                    # Tính góc từ hub đến waiting
-                    target_angle = atan2(
-                        waiting_pose_y - hub_pose_y,
-                        waiting_pose_x - hub_pose_x
-                    )
-                    
-                    # Lấy góc hiện tại của robot
-                    current_angle = self.robot_pose_angle
-                    
-                    # Tính góc lệch
-                    angle_diff = self.normalize_angle(target_angle - current_angle)
-                    angle_diff_deg = abs(degrees(angle_diff))
-                    
-                    rospy.logwarn(f"Target angle for detect mirror: {degrees(target_angle):.2f} deg")
-                    rospy.logwarn(f"Current angle for detect mirror: {degrees(current_angle):.2f} deg")
-                    rospy.logwarn(f"Angle difference: {angle_diff_deg:.2f} deg")
-                    if angle_diff_deg > 30 and angle_diff_deg < 150:
-                        rospy.logwarn("Angle detect mirror difference requires rotation, rotating robot...")
-                        # Chuyển sang trạng thái xoay robot
-                        _state = MainState.SEND_ROTATE_FIND_MIRROR
+                if not self.compute_goals_from_mirror():       
+                    if self.search_base_angle is None:
+                        # Chọn góc gốc dựa trên việc đầu hay đuôi đang hướng về hub
+                        ideal_yaw = orientation_waiting_to_hub_pose
+                        diff_forward = abs(self.normalize_angle(self.robot_pose_angle - ideal_yaw))
+                        diff_backward = abs(self.normalize_angle(self.robot_pose_angle - (ideal_yaw + pi)))
+                        
+                        if diff_forward < diff_backward:
+                            self.search_base_angle = ideal_yaw
+                        else:
+                            self.search_base_angle = self.normalize_angle(ideal_yaw + pi)
+
+                    if self.count_rotate == 0:
+                        # Xoay trái 45 độ
+                        target_yaw = self.normalize_angle(self.search_base_angle + math.radians(45))
+                        angle_err = self.normalize_angle(target_yaw - self.robot_pose_angle)
+                        if self.rotate_from_init_angle(angle_err):
+                            self.count_rotate = 1
+                    elif self.count_rotate == 1:
+                        # Xoay phải 45 độ (so với gốc), tức là -45 độ
+                        target_yaw = self.normalize_angle(self.search_base_angle - math.radians(45))
+                        angle_err = self.normalize_angle(target_yaw - self.robot_pose_angle)
+                        if self.rotate_from_init_angle(angle_err):
+                            self.count_rotate = 2
                     else:
+                        rospy.logwarn_throttle(5, "[HUB] Mirror not found after search, moving to error state.")
+                        rospy.sleep(0.5)
                         _state_when_error = _state
                         _state = MainState.DETECT_MIRROR_ERROR
-                        continue
+                    continue    
                 else:
+                    self.count_rotate = 0
+                    self.search_base_angle = None
                     self.send_request_get_mirror(
                         self.calculate_pose_offset(
                             0.4,
@@ -1164,6 +1179,7 @@ class HubAction(object):
                             ),
                         ),
                         False,
+                        orientation_hub_to_waiting_pose,
                     )
                 self.moving_control_client.send_goal(
                     self.temp_goal,
@@ -1212,6 +1228,24 @@ class HubAction(object):
                     )
                     _state_when_pause = _state
                     _state = MainState.PAUSED
+
+            # State: SEND_ROTATE_INIT
+            elif _state == MainState.SEND_ROTATE_INIT:
+                # 1. Get current orientation
+                curr_quat = self.pose_map2robot.orientation
+                _, _, curr_yaw = euler_from_quaternion([curr_quat.x, curr_quat.y, curr_quat.z, curr_quat.w])
+                
+                # 2. Calculate angle error (assuming init_angle is in degrees)
+                target_yaw = math.radians(self.init_angle)
+                angle_err = self.normalize_angle(target_yaw - curr_yaw)
+                
+                # 3. Rotate in place (rotate_to_goal sets linear.x = 0)
+                if self.rotate_from_init_angle(angle_err):
+                    rospy.loginfo("Initial rotation finished. Proceeding to temp pose.")
+                    _state = MainState.SEND_GOTO_TEMP_POSE
+                else:
+                    # Log progress occasionally
+                    rospy.loginfo_throttle(5, "Initial rotation in progress... Error: {:.3f} rad".format(angle_err))
 
             # State: SEND_ROTATE_FIND_MIRROR
             elif _state == MainState.SEND_ROTATE_FIND_MIRROR:
@@ -1278,11 +1312,12 @@ class HubAction(object):
                             ),
                         ),
                         True,
+                        orientation_hub_to_waiting_pose,
                     )
                     rospy.sleep(1)
                     if not self.compute_goals_from_mirror():
-                        _state_when_error = _state
-                        _state = MainState.DETECT_MIRROR_ERROR
+                        rospy.logwarn_throttle(5, "[DOCKING] Mirror lost, waiting to recover...")
+                        rospy.sleep(0.5)
                         continue
                     else:
                         self.send_request_get_mirror(
@@ -1296,6 +1331,7 @@ class HubAction(object):
                                 ),
                             ),
                             False,
+                            orientation_hub_to_waiting_pose,
                         )
                 first_go_to_waiting = False
                 self.dynamic_reconfig_movebase(
@@ -1910,6 +1946,8 @@ class HubAction(object):
                 if self._asm.reset_error_request:
                     self._asm.reset_flag()
                     _state = _state_when_error
+                    self.count_rotate = 0
+                    self.search_base_angle = None
 
             elif _state == MainState.UNABLE_PLACE_CART:
                 # rospy.logwarn(self.error_position)
@@ -2123,6 +2161,7 @@ class HubAction(object):
                 ),
             ),
             False,
+            orientation_hub_to_waiting_pose,
         )
 
     """
@@ -2158,10 +2197,11 @@ class HubAction(object):
         
         return lidar_x, lidar_y
 
-    def send_request_get_mirror(self, pose_target, enable_detect, use_scan_merge=False):
+    def send_request_get_mirror(self, pose_target, enable_detect, orientation, use_scan_merge=False):
         req = HubServiceRequest()
         req.pose_target = pose_target
         req.enable_detect = enable_detect
+        req.orientation = orientation
         req.length = self.length_hub  # Sử dụng giá trị từ config
         req.use_scan_merge = use_scan_merge  # Thêm option use_scan_merge
         
@@ -2698,6 +2738,23 @@ class HubAction(object):
         self.cmd_vel_pub.publish(self.vel)
         return False
 
+    def rotate_from_init_angle(self, angle):
+        error_angle = angle  # - self.theta
+
+        if np.abs(error_angle) < 5:
+            self.vel.linear.x = 0.0
+            self.vel.angular.z = 0.0
+            self.cmd_vel_pub.publish(self.vel)
+            return True
+
+        if error_angle > 0:
+            self.vel.angular.z = np.clip(0.1 * error_angle, 0.5, 0.8)
+        else:
+            self.vel.angular.z = np.clip(0.1 * error_angle, -0.8, -0.5)
+        self.vel.linear.x = 0.0
+        self.cmd_vel_pub.publish(self.vel)
+        return False
+
     def get_path_angle(self, from_pose, to_pose):
         """
         Tính góc từ from_pose tới to_pose
@@ -2824,3 +2881,4 @@ def main():
 if __name__ == "__main__":
     main()
 
+ádddddddddddddddddđ

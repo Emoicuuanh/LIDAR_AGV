@@ -267,7 +267,7 @@ class PassboxEqualAction(object):
         # dynamic reconfig client
         self.client_reconfig_movebase = dynamic_reconfigure.client.Client(
             "/move_base/NeoLocalPlanner",
-            timeout=30,
+            timeout=300,
             config_callback=self.dynamic_callback,
         )
 

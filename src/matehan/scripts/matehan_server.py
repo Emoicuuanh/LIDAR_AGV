@@ -139,6 +139,8 @@ class MainState(EnumString):
     ROTATE_TO_GOAL_ANGLE = 51
     READ_CART_ERROR = 52
     DETECT_MIRROR_ERROR = 60
+    SEND_ROTATE_INIT = 70
+    ROTATE_INIT = 71
 
 class RunType(Enum):
     NONE = -1
@@ -333,7 +335,7 @@ class MatehanAction(object):
         self.vel = Twist()
         self.lift_timer = None
         self.current_control_tf = 100
-
+        self.init_angle = 45
         # tf
         self.tf_buffer = tf2_ros.Buffer(cache_time=rospy.Duration(0.1))
         self.tf2_listener = tf2_ros.TransformListener(self.tf_buffer)
@@ -823,7 +825,8 @@ class MatehanAction(object):
             cur_orient = atan2(
                 waiting_pose_y - hub_pose_y, waiting_pose_x - hub_pose_x
             )
-
+        orientation_hub_to_waiting_pose = atan2(waiting_pose_y - hub_pose_y,
+              waiting_pose_x - hub_pose_x)
         # Calculate waiting goal
         self.waiting_goal = StringGoal()
         waiting_pose = self.calculate_pose_offset(
@@ -835,7 +838,7 @@ class MatehanAction(object):
         rospy.logwarn(" cur_orient docking: {}".format(cur_orient))
         if USE_DOCKING_BY_MIRROR:
             odom_pose = self.wait_until_pose_available()
-            waiting_pose = self.transform_pose_map_to_odom(waiting_pose)
+            waiting_pose = self.wait_until_tf_map_to_pose_available(waiting_pose)
             waiting_pose.position.x = odom_pose.position.x
             waiting_pose.position.y = odom_pose.position.y
             #  _, _, yaw = euler_from_quaternion([quat.x, quat.y, quat.z, quat.w])
@@ -871,7 +874,7 @@ class MatehanAction(object):
             cur_orient,
         )
         if USE_DOCKING_BY_MIRROR:
-            docking_pose = self.transform_pose_map_to_odom(docking_pose)
+            docking_pose = self.wait_until_tf_map_to_pose_available(docking_pose)
         self.docking_path_dict["params"] = {}
         self.docking_path_dict["params"]["only_use_qr"] = True
         if USE_DOCKING_BY_MIRROR:
@@ -1080,6 +1083,25 @@ class MatehanAction(object):
                     _state_when_emg_matehan = _state
                     _state = MainState.EMG_MATEHAN
                     continue
+
+            # State: SEND_ROTATE_INIT
+            elif _state == MainState.SEND_ROTATE_INIT:
+                # 1. Get current orientation
+                curr_quat = self.pose_map2robot.orientation
+                _, _, curr_yaw = euler_from_quaternion([curr_quat.x, curr_quat.y, curr_quat.z, curr_quat.w])
+                
+                # 2. Calculate angle error (assuming init_angle is in degrees)
+                target_yaw = math.radians(self.init_angle)
+                angle_err = self.normalize_angle(target_yaw - curr_yaw)
+                
+                # 3. Rotate in place (rotate_to_goal sets linear.x = 0)
+                if self.rotate_from_init_angle(angle_err):
+                    rospy.loginfo("Initial rotation finished. Proceeding to temp pose.")
+                    _state = MainState.SEND_GOTO_TEMP_POSE
+                else:
+                    # Log progress occasionally
+                    rospy.loginfo_throttle(5, "Initial rotation in progress... Error: {:.3f} rad".format(angle_err))
+
             # State: SEND_GOTO_WAITING
             elif _state == MainState.SEND_GOTO_WAITING:
                 rotation_exact_first = True
@@ -1187,10 +1209,24 @@ class MatehanAction(object):
                         ),
                     ),
                     True,
+                    orientation_hub_to_waiting_pose,
                     True
                 )
                 rospy.sleep(1)
                 if not self.compute_goals_from_mirror():
+                    self.send_request_get_mirror(
+                        self.calculate_pose_offset(
+                            0.4,
+                            hub_pose_x,
+                            hub_pose_y,
+                            atan2(
+                                waiting_pose_y - hub_pose_y,
+                                waiting_pose_x - hub_pose_x,
+                            ),
+                        ),
+                        False,
+                        orientation_hub_to_waiting_pose
+                    )
                     # Tính góc từ hub đến waiting
                     target_angle = atan2(
                         waiting_pose_y - hub_pose_y,
@@ -1211,6 +1247,7 @@ class MatehanAction(object):
                         rospy.logwarn("Angle detect mirror difference requires rotation, rotating robot...")
                         # Chuyển sang trạng thái xoay robot
                         _state = MainState.SEND_ROTATE_FIND_MIRROR
+                        continue
                     else:
                         _state_when_error = _state
                         _state = MainState.DETECT_MIRROR_ERROR
@@ -1227,6 +1264,7 @@ class MatehanAction(object):
                             ),
                         ),
                         False,
+                        orientation_hub_to_waiting_pose
                     )
                 self.moving_control_client.send_goal(
                     self.temp_goal,
@@ -1355,6 +1393,7 @@ class MatehanAction(object):
                                     ),
                                 ),
                                 True,
+                                orientation_hub_to_waiting_pose
                             )
                             rospy.sleep(1)
                             if not self.compute_goals_from_mirror():
@@ -1373,6 +1412,7 @@ class MatehanAction(object):
                                         ),
                                     ),
                                     False,
+                                    orientation_hub_to_waiting_pose
                                 )
                         # SET OUTPUT 1 = OFF
                         self.dynamic_reconfig_movebase(
@@ -2512,6 +2552,7 @@ class MatehanAction(object):
                 ),
             ),
             False,
+            orientation_hub_to_waiting_pose
         )
 
     """
@@ -2547,11 +2588,12 @@ class MatehanAction(object):
         
         return lidar_x, lidar_y
 
-    def send_request_get_mirror(self, pose_target, enable_detect, use_scan_merge=False):
+    def send_request_get_mirror(self, pose_target, enable_detect, orientation, use_scan_merge=False):
         req = HubServiceRequest()
         req.pose_target = pose_target
         req.enable_detect = enable_detect
         req.length = self.length_hub  # Sử dụng giá trị từ config
+        req.orientation = orientation
         req.use_scan_merge = use_scan_merge  # Thêm option use_scan_merge
         
         try:
@@ -2586,6 +2628,13 @@ class MatehanAction(object):
         except Exception as e:  # Bắt tất cả exception
             rospy.logwarn("Transform failed: %s", e)
             return None
+
+    def wait_until_tf_map_to_pose_available(self, pose_in_map):
+        while not rospy.is_shutdown():
+            pose = self.transform_pose_map_to_odom(pose_in_map)
+            if pose is not None:
+                return pose
+            rospy.sleep(0.1)
 
     def transform_pose_map_to_odom(self, pose_in_map):
         # Tạo PoseStamped
@@ -3082,6 +3131,23 @@ class MatehanAction(object):
         self.cmd_vel_pub.publish(self.vel)
         return False
 
+    def rotate_from_init_angle(self, angle):
+        error_angle = angle  # - self.theta
+
+        if np.abs(error_angle) < 0.3:
+            self.vel.linear.x = 0.0
+            self.vel.angular.z = 0.0
+            self.cmd_vel_pub.publish(self.vel)
+            return True
+
+        if error_angle > 0:
+            self.vel.angular.z = np.clip(0.1 * error_angle, 0.5, 0.8)
+        else:
+            self.vel.angular.z = np.clip(0.1 * error_angle, -0.8, -0.5)
+        self.vel.linear.x = 0.0
+        self.cmd_vel_pub.publish(self.vel)
+        return False
+
     def get_path_angle(self, from_pose, to_pose):
         """
         Tính góc từ from_pose tới to_pose
@@ -3199,4 +3265,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

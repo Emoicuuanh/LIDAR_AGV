@@ -329,7 +329,7 @@ class PassboxAction(object):
         # dynamic reconfig client
         self.client_reconfig_movebase = dynamic_reconfigure.client.Client(
             "/move_base/NeoLocalPlanner",
-            timeout=30,
+            timeout=300,
             config_callback=self.dynamic_callback,
         )
 
@@ -364,8 +364,7 @@ class PassboxAction(object):
         self.vel_move_base = 0.8
         self.plc_ip = rospy.get_param("~plc_ip", "192.86.11.191")
         self.plc_port = rospy.get_param("~plc_port", 5000)
-        rospy.loginfo("Connecting to PLC: {}:{}".format(self.plc_ip, self.plc_port))
-        modbus_tcp_passbox.connect(self.plc_ip, self.plc_port)
+        rospy.loginfo("will connect when mission starts to PLC: {}:{}".format(self.plc_ip, self.plc_port))
         self.first_emg_agv = -1
 
         self.lift_msg = Int8Stamped()
@@ -1433,7 +1432,10 @@ class PassboxAction(object):
         _state_when_network_timeout = MainState.NONE # Lưu state tại thời điểm timeout trước khi set state mất kết nối plc
         first_go_to_waiting = True  # Flag for first time going to waiting position
         disable_auto_get_center_tape = False  # Flag for auto center tape detection
+        
         # Reconnect nếu bị disconnect từ action trước (disconnect() gọi cuối mỗi action)
+        rospy.logwarn("Mission received - connecting to Wareshare {}:{}".format(self.plc_ip, self.plc_port))
+        modbus_tcp_passbox.connect(self.plc_ip, self.plc_port)
         if not self.check_connected():
             rospy.logwarn("PLC disconnected, reconnecting...")
             modbus_tcp_passbox.connect(self.plc_ip, self.plc_port)
