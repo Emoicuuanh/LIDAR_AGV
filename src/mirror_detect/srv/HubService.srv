@@ -1,0 +1,6 @@
+geometry_msgs/Pose pose_target
+bool enable_detect
+bool use_scan_merge
+float32 length
+---
+bool success

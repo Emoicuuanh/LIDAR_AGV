@@ -1,0 +1,2 @@
+rosserial/rosserial
+/home/mkac/mav_ws/devel/.private/rosserial/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock

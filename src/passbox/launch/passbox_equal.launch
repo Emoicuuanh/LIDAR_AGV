@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+    <node pkg="passbox" type="passbox_server_copy_1.py" name="passbox_equal_server" output="screen">
+    </node>
+</launch>
+

@@ -1,0 +1,5 @@
+00.amr/amr_simulation
+/home/mkac/mav_ws/devel/.private/amr_simulation/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/amr_simulation/share/amr_simulation/cmake/amr_simulationConfig-version.cmake /home/mkac/mav_ws/devel/share/amr_simulation/cmake/amr_simulationConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/amr_simulation/share/amr_simulation/cmake/amr_simulationConfig.cmake /home/mkac/mav_ws/devel/share/amr_simulation/cmake/amr_simulationConfig.cmake
+/home/mkac/mav_ws/devel/.private/amr_simulation/lib/pkgconfig/amr_simulation.pc /home/mkac/mav_ws/devel/lib/pkgconfig/amr_simulation.pc

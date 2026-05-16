@@ -1,0 +1,5 @@
+rosserial/rosserial_test
+/home/mkac/mav_ws/devel/.private/rosserial_test/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/rosserial_test/share/rosserial_test/cmake/rosserial_testConfig-version.cmake /home/mkac/mav_ws/devel/share/rosserial_test/cmake/rosserial_testConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/rosserial_test/share/rosserial_test/cmake/rosserial_testConfig.cmake /home/mkac/mav_ws/devel/share/rosserial_test/cmake/rosserial_testConfig.cmake
+/home/mkac/mav_ws/devel/.private/rosserial_test/lib/pkgconfig/rosserial_test.pc /home/mkac/mav_ws/devel/lib/pkgconfig/rosserial_test.pc

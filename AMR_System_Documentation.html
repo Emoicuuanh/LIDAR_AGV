@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Tài liệu hệ thống AMR</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  body{font-family:Arial,sans-serif;max-width:1600px;margin:0 auto;padding:20px;background:#f5f5f5}
+  h1{color:#1a237e;border-bottom:3px solid #1a237e;padding-bottom:10px;font-size:28px}
+  h2{color:#283593;border-left:5px solid #3949ab;padding-left:12px;margin-top:40px;font-size:20px}
+  .section{background:white;border-radius:8px;padding:24px;margin-bottom:30px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+  .dw{border:1px solid #e0e0e0;border-radius:6px;overflow:hidden;background:#fafafa}
+  .dt{padding:6px 10px;background:#e8eaf6;display:flex;gap:8px;align-items:center;font-size:13px}
+  .dt button{padding:4px 14px;border:1px solid #3949ab;background:white;color:#3949ab;border-radius:4px;cursor:pointer;font-size:16px;font-weight:bold}
+  .dt button:hover{background:#3949ab;color:white}
+  .dc{overflow:auto;cursor:grab;padding:20px;min-height:150px;max-height:700px}
+  .dc:active{cursor:grabbing}
+  .dc .mermaid{display:inline-block;transform-origin:top left}
+  table{border-collapse:collapse;width:100%;margin-top:12px}
+  th{background:#3949ab;color:white;padding:10px 14px;text-align:left}
+  td{padding:9px 14px;border-bottom:1px solid #ddd}
+  tr:nth-child(even){background:#f0f4ff}
+  code{background:#e8eaf6;padding:2px 6px;border-radius:4px;font-size:.9em}
+  .note{background:#fff3e0;border-left:4px solid #ff9800;padding:10px 14px;border-radius:4px;margin-top:12px}
+  .tip{background:#e3f2fd;border-left:4px solid #1976d2;padding:8px 14px;border-radius:4px;margin-bottom:16px}
+</style>
+</head>
+<body>
+<h1>📋 Tài liệu hệ thống AMR</h1>
+<div class="tip">💡 Dùng nút <b>+</b> / <b>−</b> để zoom. Giữ chuột trái để kéo. Cuộn chuột cũng zoom được.</div>
+
+<!-- 1 -->
+<div class="section">
+<h2>1. Sơ đồ khởi động (<code>amr_startup.launch</code>)</h2>
+<div class="dw">
+  <div class="dt">
+    <button onclick="zm('d1',.2)">+</button>
+    <button onclick="zm('d1',-.2)">−</button>
+    <button onclick="rs('d1')">Reset</button>
+    <span style="color:#888">zoom / kéo để xem</span>
+  </div>
+  <div class="dc" id="d1-c">
+    <div class="mermaid" id="d1">
+graph LR
+  subgraph HW["⚙ Hardware"]
+    HW1[arduino_bridge\nEncoder·IMU·IO]
+    HW2[amr_bringup\nVel mux·Joystick]
+    HW3[robot_pose_publisher\n/robot_pose 40Hz]
+    HW4[reset_arduino]
+  end
+  subgraph NAV["🗺 Navigation"]
+    NAV1[lidar_signal_new\nDriver Lidar]
+    NAV2[laser_filter]
+    NAV3[move_base\nPath Planning]
+    NAV4[slam_manager\nBản đồ·Localization]
+    NAV5[qr_localization]
+  end
+  subgraph MISS["📋 Mission"]
+    M1[control_system\nState machine]
+    M2[moving_control\nWaypoint mover]
+    M3[mission_manager\nĐiều phối mission]
+    M4[trigger_mission_server]
+    M5[trigger_mission_by_name]
+  end
+  subgraph SAFE["🔴 Safety"]
+    S1[safety_tof_sensor]
+    S2[scan_safety]
+  end
+  subgraph UI["🖥 UI/Peripheral"]
+    UI1[sound_control]
+    UI2[led_control]
+    UI3[qr_label_tracker]
+    UI4[log_odom]
+    UI5[mirror_detect]
+    UI6[traffic_control]
+  end
+  START([amr_startup.launch]):::start --> HW & NAV & MISS & SAFE & UI
+  classDef start fill:#1a237e,color:#fff,font-size:15px
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 2 -->
+<div class="section">
+<h2>2. Kiến trúc điều khiển vận tốc</h2>
+<div class="dw">
+  <div class="dt">
+    <button onclick="zm('d2',.2)">+</button><button onclick="zm('d2',-.2)">−</button><button onclick="rs('d2')">Reset</button>
+  </div>
+  <div class="dc" id="d2-c">
+    <div class="mermaid" id="d2">
+graph LR
+  MB["move_base\n/cmd_vel"] --> AMUX["auto_cmd_vel_mux"]
+  MTP["moving_control\n/mtp_cmd_vel"] --> AMUX
+  AMUX --> VSA["velocity_smoother\nauto"]
+  VSA --> FMUX
+  JOY["🕹 Joystick"] --> VSJ["velocity_smoother\njoystick"]
+  VSJ --> FMUX
+  SAFE["⚠ safety_cmd_vel"]:::warn --> FMUX
+  RETRY["🔴 retry_docking"]:::danger --> FMUX
+  FMUX["final_cmd_vel_mux"]:::purple --> MOTOR["🔧 Động cơ\nKeya Servo"]:::green
+  classDef danger fill:#ef9a9a
+  classDef warn fill:#ffcc80
+  classDef green fill:#a5d6a7
+  classDef purple fill:#ce93d8
+    </div>
+  </div>
+</div>
+<div class="note"><b>Ưu tiên cao → thấp:</b> retry_docking → safety → joystick → auto</div>
+</div>
+
+<!-- 3 -->
+<div class="section">
+<h2>3. Luồng thực thi Mission</h2>
+<div class="dw">
+  <div class="dt">
+    <button onclick="zm('d3',.2)">+</button><button onclick="zm('d3',-.2)">−</button><button onclick="rs('d3')">Reset</button>
+  </div>
+  <div class="dc" id="d3-c">
+    <div class="mermaid" id="d3">
+sequenceDiagram
+  participant SRV as Server/HMI
+  participant TMS as trigger_mission_server
+  participant TMN as trigger_mission_by_name
+  participant DB as MongoDB
+  participant MM as mission_manager
+  participant MC as moving_control/docking
+  SRV->>TMS: Action goal START
+  TMS->>DB: Đọc queue
+  DB-->>TMS: tên_mission
+  TMS->>TMN: publish tên_mission
+  TMN->>TMN: sleep 3s
+  TMN->>DB: emptyQueue + newQueue
+  TMN->>MM: publish START
+  MM->>DB: getQueueMission(vị_trí)
+  DB-->>MM: danh sách actions
+  loop mỗi action
+    MM->>MC: send goal
+    MC-->>MM: feedback 5s
+    MC-->>MM: SUCCEEDED/FAILED
+  end
+  MM->>DB: log + deleteQueue
+  MM-->>SRV: hoàn thành
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 4 -->
+<div class="section">
+<h2>4. State Machine – Mission Manager</h2>
+<div class="dw">
+  <div class="dt">
+    <button onclick="zm('d4',.2)">+</button><button onclick="zm('d4',-.2)">−</button><button onclick="rs('d4')">Reset</button>
+  </div>
+  <div class="dc" id="d4-c">
+    <div class="mermaid" id="d4">
+stateDiagram-v2
+  [*] --> INIT
+  INIT --> SEND_ACTION_GOAL : DB OK
+  INIT --> ROBOT_NOT_IN_POSE : Sai vị trí
+  INIT --> SERVER_DATA_ERROR : JSON lỗi
+  SEND_ACTION_GOAL --> UNDOCKING : cần undock
+  SEND_ACTION_GOAL --> WAIT_RESULT : gửi goal OK
+  SEND_ACTION_GOAL --> MISSING_ACTION_DATA : thiếu data
+  SEND_ACTION_GOAL --> DUPLICATE_MARKER : marker trùng
+  SEND_ACTION_GOAL --> MARKER_DIR_WRONG : sai hướng
+  UNDOCKING --> SEND_ACTION_GOAL : OK
+  UNDOCKING --> UNDOCKING_ERROR : FAIL
+  UNDOCKING --> UNDOCKING_DISCONNECTED : timeout 5s
+  UNDOCKING --> PAUSED : pause
+  WAIT_RESULT --> SEND_ACTION_GOAL : SUCCEEDED còn action
+  WAIT_RESULT --> INIT : SUCCEEDED hết mission
+  WAIT_RESULT --> ACTION_EXEC_ERROR : FAILED
+  WAIT_RESULT --> ERROR : timeout 5s
+  WAIT_RESULT --> PAUSED : pause
+  PAUSED --> WAIT_RESULT : resume
+  ERROR --> SEND_ACTION_GOAL : reset
+  ACTION_EXEC_ERROR --> SEND_ACTION_GOAL : reset
+  UNDOCKING_ERROR --> UNDOCKING : reset
+  ROBOT_NOT_IN_POSE --> INIT : reset
+  MISSING_ACTION_DATA --> INIT : reset
+  DUPLICATE_MARKER --> INIT : reset
+  MARKER_DIR_WRONG --> INIT : reset
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 5 -->
+<div class="section">
+<h2>5. State Machine – QR Label Tracker</h2>
+<div class="dw">
+  <div class="dt">
+    <button onclick="zm('d5',.2)">+</button><button onclick="zm('d5',-.2)">−</button><button onclick="rs('d5')">Reset</button>
+  </div>
+  <div class="dc" id="d5-c">
+    <div class="mermaid" id="d5">
+stateDiagram-v2
+  [*] --> INIT
+  INIT --> NORMAL : khởi tạo xong
+  NORMAL --> ERROR : lost_qr_at_goal==True
+  ERROR --> NORMAL : reset + QR đọc trong 0.2s + trong 0.5m path
+  NORMAL --> BYPASS : MANUAL hoặc WAITING
+  BYPASS --> NORMAL : AUTO và RUNNING
+    </div>
+  </div>
+</div>
+<div class="note"><b>Lưu ý:</b> <code>robot_is_on_label()</code> đang bị tắt bởi <code>if False and ...</code></div>
+</div>
+
+<!-- 6 -->
+<div class="section">
+<h2>6. Localization & Bản đồ</h2>
+<div class="dw">
+  <div class="dt">
+    <button onclick="zm('d6',.2)">+</button><button onclick="zm('d6',-.2)">−</button><button onclick="rs('d6')">Reset</button>
+  </div>
+  <div class="dc" id="d6-c">
+    <div class="mermaid" id="d6">
+graph TD
+  LIDAR["🔵 Lidar\n/scan"] --> SLAM["slam_manager\nCartographer/AMCL"]
+  ODOM["⚙ Encoder\n/odom"] --> SLAM
+  IMU["📐 IMU\n/imu"] --> SLAM
+  QR["🟢 QR /data_gls621"] --> QRLOC["qr_localization"]
+  QRLOC -->|/initialpose| SLAM
+  QRLOC -->|/robot_pose| TRACKER["qr_label_tracker"]
+  SLAM -->|/map| MB["move_base"]
+  MB -->|/tf map→odom→base| RP["robot_pose_publisher\n/robot_pose"]
+  RP --> MM["mission_manager"]
+  RP --> TRACKER
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 7 -->
+<div class="section">
+<h2>7. Topic chính giữa các node</h2>
+<div class="dw">
+  <div class="dt">
+    <button onclick="zm('d7',.2)">+</button><button onclick="zm('d7',-.2)">−</button><button onclick="rs('d7')">Reset</button>
+  </div>
+  <div class="dc" id="d7-c">
+    <div class="mermaid" id="d7">
+graph TB
+  subgraph SEN["Cảm biến"]
+    S1[/scan/] 
+    S2[/data_gls621/]
+    S3[/odom/]
+    S4[/standard_io/]
+  end
+  subgraph NAV2["Điều hướng"]
+    N1[move_base]
+    N2[slam_manager]
+    N3[qr_localization]
+  end
+  subgraph CTL["Điều khiển"]
+    C1[control_system]
+    C2[moving_control]
+    C3[final_cmd_vel_mux]
+    C4[Động cơ]
+  end
+  subgraph MIS["Mission"]
+    M1[mission_manager]
+    M2[docking_charger]
+    M3[qr_label_tracker]
+  end
+  S1 --> N1 & N2
+  S2 --> N3 & M3
+  S3 --> N1 & N2
+  N1 -->|cmd_vel| C3
+  N3 -->|initialpose| N2
+  C1 -->|robot_status| M1 & M3
+  M1 -->|module_status| M3 & C1
+  M1 -->|goal| C2 & M2
+  C2 -->|mtp_cmd_vel| C3
+  M2 -->|retry_docking| C3
+  C3 --> C4
+  S4 --> C1 & M1
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- 8 -->
+<div class="section">
+<h2>8. Tóm tắt các Package</h2>
+<table>
+  <tr><th>Package</th><th>Vai trò</th><th>Giao tiếp chính</th></tr>
+  <tr><td><code>amr_bringup</code></td><td>Velocity mux, joystick, hardware init</td><td><code>/final_cmd_vel_mux/output</code></td></tr>
+  <tr><td><code>move_base</code></td><td>Path planning + local planner NEO</td><td><code>cmd_vel</code>, <code>/map</code>, <code>/tf</code></td></tr>
+  <tr><td><code>slam_manager</code></td><td>Quản lý Cartographer/AMCL</td><td><code>/map</code>, <code>/tf</code></td></tr>
+  <tr><td><code>qr_localization</code></td><td>Hiệu chỉnh vị trí bằng QR</td><td><code>/initialpose</code>, <code>/robot_pose</code></td></tr>
+  <tr><td><code>qr_label_tracker</code></td><td>Giám sát robot bám theo QR</td><td>module_status</td></tr>
+  <tr><td><code>control_system</code></td><td>State machine tổng AUTO/MANUAL/ERROR</td><td><code>robot_status</code></td></tr>
+  <tr><td><code>moving_control</code></td><td>Action server di chuyển waypoint</td><td><code>mtp_cmd_vel</code></td></tr>
+  <tr><td><code>mission_manager</code></td><td>Điều phối toàn bộ mission từ MongoDB</td><td>Action server</td></tr>
+  <tr><td><code>docking_charger</code></td><td>Tự động dock sạc</td><td>Action server</td></tr>
+  <tr><td><code>trigger_mission_*</code></td><td>Kích hoạt mission theo tên</td><td>MongoDB, <code>request_start_mission</code></td></tr>
+  <tr><td><code>yocs_velocity_smoother</code></td><td>Làm mượt vận tốc</td><td>Nodelet</td></tr>
+  <tr><td><code>safety_tof_sensor</code></td><td>Cảm biến TOF an toàn</td><td><code>safety_cmd_vel</code></td></tr>
+</table>
+</div>
+
+<script>
+mermaid.initialize({startOnLoad:true,theme:'default',fontSize:16});
+const sc={};
+function zm(id,d){
+  sc[id]=(sc[id]||1);
+  sc[id]=Math.max(0.2,Math.min(4,sc[id]+d));
+  document.getElementById(id).style.transform='scale('+sc[id]+')';
+}
+function rs(id){
+  sc[id]=1;
+  document.getElementById(id).style.transform='scale(1)';
+  const c=document.getElementById(id+'-c');
+  c.scrollLeft=0;c.scrollTop=0;
+}
+document.querySelectorAll('.dc').forEach(c=>{
+  let dn=false,sx,sy,sl,st;
+  c.addEventListener('mousedown',e=>{dn=true;sx=e.pageX-c.offsetLeft;sy=e.pageY-c.offsetTop;sl=c.scrollLeft;st=c.scrollTop;});
+  c.addEventListener('mouseleave',()=>dn=false);
+  c.addEventListener('mouseup',()=>dn=false);
+  c.addEventListener('mousemove',e=>{if(!dn)return;e.preventDefault();c.scrollLeft=sl-(e.pageX-c.offsetLeft-sx);c.scrollTop=st-(e.pageY-c.offsetTop-sy);});
+  c.addEventListener('wheel',e=>{e.preventDefault();zm(c.id.replace('-c',''),e.deltaY<0?.1:-.1);},{passive:false});
+});
+</script>
+</body>
+</html>

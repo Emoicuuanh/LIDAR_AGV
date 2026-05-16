@@ -1,0 +1,8 @@
+yujin_ocs/yocs_waypoint_provider
+/home/mkac/mav_ws/devel/.private/yocs_waypoint_provider/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/yocs_waypoint_provider/share/yocs_waypoint_provider/cmake/yocs_waypoint_providerConfig.cmake /home/mkac/mav_ws/devel/share/yocs_waypoint_provider/cmake/yocs_waypoint_providerConfig.cmake
+/home/mkac/mav_ws/devel/.private/yocs_waypoint_provider/share/yocs_waypoint_provider/cmake/yocs_waypoint_providerConfig-version.cmake /home/mkac/mav_ws/devel/share/yocs_waypoint_provider/cmake/yocs_waypoint_providerConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/yocs_waypoint_provider/lib/libwaypoint_provider_lib.so /home/mkac/mav_ws/devel/lib/libwaypoint_provider_lib.so
+/home/mkac/mav_ws/devel/.private/yocs_waypoint_provider/lib/libwaypoint_provider_yaml_parser_lib.so /home/mkac/mav_ws/devel/lib/libwaypoint_provider_yaml_parser_lib.so
+/home/mkac/mav_ws/devel/.private/yocs_waypoint_provider/lib/pkgconfig/yocs_waypoint_provider.pc /home/mkac/mav_ws/devel/lib/pkgconfig/yocs_waypoint_provider.pc
+/home/mkac/mav_ws/devel/.private/yocs_waypoint_provider/lib/yocs_waypoint_provider/waypoint_provider /home/mkac/mav_ws/devel/lib/yocs_waypoint_provider/waypoint_provider

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Phân bố chuẩn - Sai số Odom</title>
+<style>
+  body { background: #f0f0f0; display: flex; justify-content: center;
+         align-items: center; min-height: 100vh; margin: 0; font-family: Arial, sans-serif; }
+  canvas { border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); }
+</style>
+</head>
+<body>
+<canvas id="c" width="900" height="500"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+
+// === Data ===
+const mu    = 0.057;
+const sigma = 0.362;
+const data  = [-0.4, -0.2, -0.1, 0.1, 0.2, 0.74];  // 6 điểm (không outlier)
+const outlier = { val: -19.6, label: 'Run5 (outlier)\n-19.6mm' };
+
+// === Histogram bins ===
+const BW   = 0.25;   // bin width mm
+const bMin = -0.625, bMax = 1.125;
+const bins = [];
+for (let lo = bMin; lo < bMax - 1e-9; lo += BW) {
+  const hi    = lo + BW;
+  const count = data.filter(d => d >= lo && d < hi).length;
+  bins.push({ lo, hi, cx: lo + BW / 2, count });
+}
+
+// === Layout ===
+const W = canvas.width, H = canvas.height;
+const pad = { left: 70, right: 30, top: 60, bottom: 60 };
+const gW  = W - pad.left - pad.right;
+const gH  = H - pad.top  - pad.bottom;
+
+const xMin = bMin - 0.1, xMax = bMax + 0.1;
+const yMax = Math.max(...bins.map(b => b.count)) * 1.35 || 3;
+
+function cx(x) { return pad.left + (x - xMin) / (xMax - xMin) * gW; }
+function cy(y) { return pad.top  + gH - y / yMax * gH; }
+function gauss(x) {
+  return Math.exp(-0.5 * ((x - mu) / sigma) ** 2) / (sigma * Math.sqrt(2 * Math.PI));
+}
+
+// Scale Gaussian to match histogram counts (not density)
+const gaussScale = data.length * BW;
+
+// === White background ===
+ctx.fillStyle = 'white';
+ctx.roundRect(0, 0, W, H, 8);
+ctx.fill();
+
+// === Subtle grid ===
+ctx.setLineDash([4, 4]);
+ctx.strokeStyle = '#dddddd';
+ctx.lineWidth   = 1;
+const yTicks = [1, 2, 3];
+for (const y of yTicks) {
+  if (y > yMax) continue;
+  ctx.beginPath();
+  ctx.moveTo(pad.left, cy(y));
+  ctx.lineTo(pad.left + gW, cy(y));
+  ctx.stroke();
+}
+ctx.setLineDash([]);
+
+// === Histogram bars ===
+for (const bin of bins) {
+  if (bin.count === 0) continue;
+  const bx = cx(bin.lo), bw = cx(bin.hi) - cx(bin.lo) - 1;
+  const by = cy(bin.count), bh = cy(0) - by;
+
+  // Shadow
+  ctx.shadowColor = 'rgba(0,0,0,0.15)';
+  ctx.shadowBlur  = 4;
+  ctx.shadowOffsetX = 2;
+  ctx.shadowOffsetY = 2;
+
+  // Bar fill (gradient red)
+  const grad = ctx.createLinearGradient(bx, by, bx, cy(0));
+  grad.addColorStop(0, '#e63030');
+  grad.addColorStop(1, '#b01010');
+  ctx.fillStyle = grad;
+  ctx.fillRect(bx, by, bw, bh);
+
+  // Bar border
+  ctx.shadowColor = 'transparent';
+  ctx.strokeStyle = '#8b0000';
+  ctx.lineWidth   = 1;
+  ctx.strokeRect(bx, by, bw, bh);
+
+  // Count label on top
+  ctx.fillStyle   = '#333';
+  ctx.font        = 'bold 13px Arial';
+  ctx.textAlign   = 'center';
+  ctx.fillText(bin.count, cx(bin.cx), by - 6);
+}
+ctx.shadowColor = 'transparent';
+
+// === Gaussian curve (scaled to count) ===
+ctx.beginPath();
+const steps = 600;
+for (let i = 0; i <= steps; i++) {
+  const xi = xMin + (xMax - xMin) * i / steps;
+  const yi = gauss(xi) * gaussScale;
+  i === 0 ? ctx.moveTo(cx(xi), cy(yi)) : ctx.lineTo(cx(xi), cy(yi));
+}
+ctx.strokeStyle = '#1a6fe8';
+ctx.lineWidth   = 3;
+ctx.lineJoin    = 'round';
+ctx.stroke();
+
+// === Axes ===
+ctx.strokeStyle = '#333';
+ctx.lineWidth   = 1.5;
+ctx.beginPath();
+ctx.moveTo(pad.left, pad.top); ctx.lineTo(pad.left, pad.top + gH);  // Y
+ctx.moveTo(pad.left, pad.top + gH); ctx.lineTo(pad.left + gW, pad.top + gH); // X
+ctx.stroke();
+
+// === X ticks & labels ===
+ctx.fillStyle  = '#444';
+ctx.font       = '11px Arial';
+ctx.textAlign  = 'center';
+for (const b of bins) {
+  const tx = cx(b.lo);
+  ctx.beginPath();
+  ctx.moveTo(tx, pad.top + gH);
+  ctx.lineTo(tx, pad.top + gH + 5);
+  ctx.strokeStyle = '#888'; ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.fillText(b.lo.toFixed(2), tx, pad.top + gH + 18);
+}
+// last edge
+ctx.fillText(bMax.toFixed(2), cx(bMax), pad.top + gH + 18);
+
+// === Y ticks & labels ===
+ctx.textAlign = 'right';
+for (const y of [0, 1, 2, 3]) {
+  if (y > yMax + 0.5) continue;
+  ctx.fillStyle = '#444'; ctx.font = '11px Arial';
+  ctx.fillText(y, pad.left - 8, cy(y) + 4);
+  ctx.beginPath();
+  ctx.moveTo(pad.left - 4, cy(y));
+  ctx.lineTo(pad.left, cy(y));
+  ctx.strokeStyle = '#888'; ctx.lineWidth = 1;
+  ctx.stroke();
+}
+
+// === μ & σ vertical lines ===
+const sigLines = [
+  { v: mu,        label: 'μ',   color: '#555',   dash: [] },
+  { v: mu-sigma,  label: '-1σ', color: '#1a6fe8', dash: [5,4] },
+  { v: mu+sigma,  label: '+1σ', color: '#1a6fe8', dash: [5,4] },
+  { v: mu-2*sigma,label: '-2σ', color: '#e67e22', dash: [3,4] },
+  { v: mu+2*sigma,label: '+2σ', color: '#e67e22', dash: [3,4] },
+];
+for (const l of sigLines) {
+  if (l.v < xMin || l.v > xMax) continue;
+  ctx.setLineDash(l.dash);
+  ctx.strokeStyle = l.color;
+  ctx.lineWidth   = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx(l.v), pad.top + 10);
+  ctx.lineTo(cx(l.v), pad.top + gH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle  = l.color;
+  ctx.font       = 'bold 11px Arial';
+  ctx.textAlign  = 'center';
+  ctx.fillText(l.label, cx(l.v), pad.top + 6);
+  ctx.fillStyle  = '#888';
+  ctx.font       = '9px Arial';
+  ctx.fillText(l.v.toFixed(3), cx(l.v), pad.top + 16);
+}
+
+// === Individual data points as dots on baseline ===
+for (const d of data) {
+  ctx.beginPath();
+  ctx.arc(cx(d), pad.top + gH + 32, 5, 0, 2 * Math.PI);
+  ctx.fillStyle   = '#e63030';
+  ctx.fill();
+  ctx.strokeStyle = 'white'; ctx.lineWidth = 1.5;
+  ctx.stroke();
+}
+
+// === Outlier Run5: arrow pointing left with label ===
+{
+  const arrowX = pad.left + 38;
+  const arrowY = pad.top + gH + 32;
+  // Arrow body
+  ctx.beginPath();
+  ctx.moveTo(pad.left + 14, arrowY);
+  ctx.lineTo(arrowX, arrowY);
+  ctx.strokeStyle = '#ff9900'; ctx.lineWidth = 2;
+  ctx.setLineDash([3,2]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  // Arrowhead
+  ctx.beginPath();
+  ctx.moveTo(pad.left + 14, arrowY);
+  ctx.lineTo(pad.left + 22, arrowY - 5);
+  ctx.lineTo(pad.left + 22, arrowY + 5);
+  ctx.closePath();
+  ctx.fillStyle = '#ff9900'; ctx.fill();
+  // Dot
+  ctx.beginPath();
+  ctx.arc(arrowX + 2, arrowY, 5, 0, 2 * Math.PI);
+  ctx.fillStyle = '#ff9900'; ctx.fill();
+  ctx.strokeStyle = 'white'; ctx.lineWidth = 1.5; ctx.stroke();
+  // Label
+  ctx.fillStyle = '#ff9900'; ctx.font = 'bold 10px Arial'; ctx.textAlign = 'left';
+  ctx.fillText('Run5: -19.6mm ⚠️ outlier', pad.left + 14, arrowY - 10);
+}
+
+ctx.fillStyle  = '#555';
+ctx.font       = '10px Arial';
+ctx.textAlign  = 'left';
+ctx.fillText('● Run1-4, 6-7 (6 điểm)', pad.left, pad.top + gH + 50);
+
+// === Axis labels ===
+ctx.fillStyle  = '#333';
+ctx.font       = 'bold 13px Arial';
+ctx.textAlign  = 'center';
+ctx.fillText('Sai số (mm)', pad.left + gW / 2, H - 8);
+ctx.save();
+ctx.translate(16, pad.top + gH / 2);
+ctx.rotate(-Math.PI / 2);
+ctx.fillText('Số lần đo', 0, 0);
+ctx.restore();
+
+// === Title ===
+ctx.fillStyle  = '#111';
+ctx.font       = 'bold 15px Arial';
+ctx.textAlign  = 'center';
+ctx.fillText(`Histogram sai số odom   μ = ${mu.toFixed(3)} mm   σ = ${sigma.toFixed(3)} mm   (n = 7,  không tính outlier Run5)`, W / 2, 36);
+
+// === Legend ===
+const lx = W - 200, ly = pad.top + 20;
+const grad2 = ctx.createLinearGradient(lx, ly, lx, ly + 16);
+grad2.addColorStop(0, '#e63030'); grad2.addColorStop(1, '#b01010');
+ctx.fillStyle = grad2;
+ctx.fillRect(lx, ly, 22, 16);
+ctx.strokeStyle = '#8b0000'; ctx.lineWidth = 1;
+ctx.strokeRect(lx, ly, 22, 16);
+ctx.fillStyle = '#333'; ctx.font = '12px Arial'; ctx.textAlign = 'left';
+ctx.fillText('Histogram thực tế', lx + 28, ly + 12);
+
+ctx.beginPath();
+ctx.moveTo(lx, ly + 34); ctx.lineTo(lx + 22, ly + 34);
+ctx.strokeStyle = '#1a6fe8'; ctx.lineWidth = 3;
+ctx.stroke();
+ctx.fillStyle = '#333'; ctx.font = '12px Arial';
+ctx.fillText('Gaussian fit', lx + 28, ly + 38);
+</script>
+
+// === Data ===
+const mu = 0.057;
+const sigma = 0.362;
+const dataPoints = [-0.4, -0.2, -0.1, 0.1, 0.2, 0.74];
+
+// === Histogram bins (width 0.3mm) ===
+const binWidth = 0.3;
+const binEdges = [-0.6, -0.3, 0.0, 0.3, 0.6, 0.9];
+const bins = [];
+for (let i = 0; i < binEdges.length - 1; i++) {
+  const lo = binEdges[i], hi = binEdges[i+1];
+  const count = dataPoints.filter(d => d >= lo && d < hi).length;
+  const density = count / (dataPoints.length * binWidth);
+  bins.push({ lo, hi, center: (lo+hi)/2, density });
+}
+
+// === Layout ===
+const W = canvas.width, H = canvas.height;
+const pad = { left: 70, right: 40, top: 70, bottom: 80 };
+const gW = W - pad.left - pad.right;
+const gH = H - pad.top - pad.bottom;
+
+const xMin = mu - 3.8 * sigma;
+const xMax = mu + 3.8 * sigma;
+const yMax = 1.35 / (sigma * Math.sqrt(2 * Math.PI));
+
+function toCanvasX(x) { return pad.left + (x - xMin) / (xMax - xMin) * gW; }
+function toCanvasY(y) { return pad.top + gH - (y / yMax) * gH; }
+function gaussian(x) { return Math.exp(-0.5 * ((x - mu) / sigma) ** 2) / (sigma * Math.sqrt(2 * Math.PI)); }
+
+// === Background ===
+ctx.fillStyle = '#1a1a2e';
+ctx.fillRect(0, 0, W, H);
+
+// === Title ===
+ctx.fillStyle = 'white';
+ctx.font = 'bold 17px Arial';
+ctx.textAlign = 'center';
+ctx.fillText(`PHÂN PHỐI CHUẨN SAI SỐ ODOM  (μ = ${mu.toFixed(3)} mm,  σ = ${sigma.toFixed(3)} mm)`, W/2, 32);
+
+// === Fill regions ===
+const regions = [
+  { a: -3.8, b: -3, color: '#1a5c30' },
+  { a: -3,   b: -2, color: '#2d8a4e' },
+  { a: -2,   b: -1, color: '#b05a7a' },
+  { a: -1,   b:  0, color: '#3a5fc8' },
+  { a:  0,   b:  1, color: '#3a5fc8' },
+  { a:  1,   b:  2, color: '#b05a7a' },
+  { a:  2,   b:  3, color: '#2d8a4e' },
+  { a:  3,   b: 3.8, color: '#1a5c30' },
+];
+
+for (const r of regions) {
+  const steps = 300;
+  const xa = mu + r.a * sigma, xb = mu + r.b * sigma;
+  ctx.beginPath();
+  ctx.moveTo(toCanvasX(xa), toCanvasY(0));
+  for (let i = 0; i <= steps; i++) {
+    const xi = xa + (xb - xa) * i / steps;
+    ctx.lineTo(toCanvasX(xi), toCanvasY(gaussian(xi)));
+  }
+  ctx.lineTo(toCanvasX(xb), toCanvasY(0));
+  ctx.closePath();
+  ctx.fillStyle = r.color;
+  ctx.fill();
+}
+
+// === Gaussian curve ===
+ctx.beginPath();
+const steps = 800;
+for (let i = 0; i <= steps; i++) {
+  const xi = xMin + (xMax - xMin) * i / steps;
+  const cy = toCanvasY(gaussian(xi));
+  i === 0 ? ctx.moveTo(toCanvasX(xi), cy) : ctx.lineTo(toCanvasX(xi), cy);
+}
+ctx.strokeStyle = 'white';
+ctx.lineWidth = 2.5;
+ctx.stroke();
+
+// === Baseline ===
+ctx.beginPath();
+ctx.moveTo(pad.left, toCanvasY(0));
+ctx.lineTo(pad.left + gW, toCanvasY(0));
+ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+ctx.lineWidth = 1.5;
+ctx.stroke();
+
+// === Sigma vertical lines & labels ===
+const sigmaMarks = [-3, -2, -1, 0, 1, 2, 3];
+const sigmaNames = ['-3σ', '-2σ', '-1σ', 'μ', '+1σ', '+2σ', '+3σ'];
+for (let i = 0; i < sigmaMarks.length; i++) {
+  const xv = mu + sigmaMarks[i] * sigma;
+  const cx = toCanvasX(xv);
+  ctx.beginPath();
+  ctx.moveTo(cx, toCanvasY(gaussian(xv)));
+  ctx.lineTo(cx, toCanvasY(0) + 10);
+  ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+  ctx.lineWidth = sigmaMarks[i] === 0 ? 2 : 1.2;
+  ctx.setLineDash(sigmaMarks[i] === 0 ? [] : []);
+  ctx.stroke();
+
+  // σ label
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 12px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(sigmaNames[i], cx, toCanvasY(0) + 26);
+  // mm value
+  ctx.fillStyle = '#aaaaaa';
+  ctx.font = '10px Arial';
+  ctx.fillText(xv.toFixed(2), cx, toCanvasY(0) + 42);
+}
+
+// === Percentage labels ===
+const pctLabels = [
+  { sx: 0.5,  txt: '34.1%', sy: 0.45 },
+  { sx: -0.5, txt: '34.1%', sy: 0.45 },
+  { sx: 1.5,  txt: '13.6%', sy: 0.20 },
+  { sx: -1.5, txt: '13.6%', sy: 0.20 },
+  { sx: 2.5,  txt: '2.1%',  sy: 0.06 },
+  { sx: -2.5, txt: '2.1%',  sy: 0.06 },
+  { sx: 3.3,  txt: '0.1%',  sy: 0.015 },
+  { sx: -3.3, txt: '0.1%',  sy: 0.015 },
+];
+for (const p of pctLabels) {
+  const xv = mu + p.sx * sigma;
+  const yv = gaussian(mu) * p.sy;
+  ctx.fillStyle = 'white';
+  ctx.font = 'bold 12px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(p.txt, toCanvasX(xv), toCanvasY(yv));
+}
+
+// === Histogram bars ===
+for (const bin of bins) {
+  if (bin.density === 0) continue;
+  const bx1 = toCanvasX(bin.lo);
+  const bx2 = toCanvasX(bin.hi);
+  const by  = toCanvasY(bin.density);
+  const by0 = toCanvasY(0);
+  // Fill
+  ctx.fillStyle = 'rgba(255, 221, 0, 0.30)';
+  ctx.fillRect(bx1 + 1, by, bx2 - bx1 - 2, by0 - by);
+  // Border
+  ctx.strokeStyle = '#ffdd00';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([]);
+  ctx.strokeRect(bx1 + 1, by, bx2 - bx1 - 2, by0 - by);
+  // Density label on bar
+  ctx.fillStyle = '#ffdd00';
+  ctx.font = 'bold 11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(bin.density.toFixed(2), toCanvasX(bin.center), by - 6);
+}
+
+// === Individual data points (dots on x-axis) ===
+for (const dp of dataPoints) {
+  const cx = toCanvasX(dp);
+  const cy = toCanvasY(0) + 6;
+  ctx.beginPath();
+  ctx.arc(cx, cy + 6, 5, 0, 2 * Math.PI);
+  ctx.fillStyle = '#ff6600';
+  ctx.fill();
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  ctx.fillStyle = '#ff9944';
+  ctx.font = '9px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(dp.toFixed(2), cx, cy + 24);
+}
+
+// === Legend ===
+ctx.beginPath();
+ctx.arc(pad.left + 10, toCanvasY(0) + 14, 5, 0, 2 * Math.PI);
+ctx.fillStyle = '#ff6600';
+ctx.fill();
+ctx.strokeStyle = 'white'; ctx.lineWidth = 1; ctx.stroke();
+ctx.fillStyle = '#ff9944';
+ctx.font = 'italic 11px Arial';
+ctx.textAlign = 'left';
+ctx.fillText(' = điểm đo thực tế', pad.left + 18, toCanvasY(0) + 18);
+
+ctx.fillStyle = 'rgba(255,221,0,0.5)';
+ctx.fillRect(pad.left + 140, toCanvasY(0) + 7, 14, 14);
+ctx.strokeStyle = '#ffdd00'; ctx.lineWidth = 1.5;
+ctx.strokeRect(pad.left + 140, toCanvasY(0) + 7, 14, 14);
+ctx.fillStyle = '#ffdd00';
+ctx.font = 'italic 11px Arial';
+ctx.textAlign = 'left';
+ctx.fillText(' = histogram mật độ', pad.left + 157, toCanvasY(0) + 18);
+
+// === X-axis label ===
+ctx.fillStyle = '#cccccc';
+ctx.font = '13px Arial';
+ctx.textAlign = 'center';
+ctx.fillText('Sai số (mm)', W / 2, H - 8);
+
+// === Color legend ===
+const legendItems = [
+  { color: '#3a5fc8', txt: '±1σ  →  68.2%' },
+  { color: '#b05a7a', txt: '±2σ  →  95.4%' },
+  { color: '#2d8a4e', txt: '±3σ  →  99.7%' },
+];
+let lx = W - 200, ly = pad.top + 10;
+for (const item of legendItems) {
+  ctx.fillStyle = item.color;
+  ctx.fillRect(lx, ly, 18, 14);
+  ctx.fillStyle = 'white';
+  ctx.font = '11px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText(item.txt, lx + 24, ly + 11);
+  ly += 22;
+}
+</script>
+</body>
+</html>

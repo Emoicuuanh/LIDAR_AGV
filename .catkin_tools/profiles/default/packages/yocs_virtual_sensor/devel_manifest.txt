@@ -1,0 +1,6 @@
+yujin_ocs/yocs_virtual_sensor
+/home/mkac/mav_ws/devel/.private/yocs_virtual_sensor/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/yocs_virtual_sensor/share/yocs_virtual_sensor/cmake/yocs_virtual_sensorConfig.cmake /home/mkac/mav_ws/devel/share/yocs_virtual_sensor/cmake/yocs_virtual_sensorConfig.cmake
+/home/mkac/mav_ws/devel/.private/yocs_virtual_sensor/share/yocs_virtual_sensor/cmake/yocs_virtual_sensorConfig-version.cmake /home/mkac/mav_ws/devel/share/yocs_virtual_sensor/cmake/yocs_virtual_sensorConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/yocs_virtual_sensor/lib/yocs_virtual_sensor/yocs_virtual_sensor_node /home/mkac/mav_ws/devel/lib/yocs_virtual_sensor/yocs_virtual_sensor_node
+/home/mkac/mav_ws/devel/.private/yocs_virtual_sensor/lib/pkgconfig/yocs_virtual_sensor.pc /home/mkac/mav_ws/devel/lib/pkgconfig/yocs_virtual_sensor.pc

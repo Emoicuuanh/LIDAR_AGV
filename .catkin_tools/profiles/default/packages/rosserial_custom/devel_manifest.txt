@@ -1,0 +1,5 @@
+rosserial_custom
+/home/mkac/mav_ws/devel/.private/rosserial_custom/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/rosserial_custom/share/rosserial_custom/cmake/rosserial_customConfig-version.cmake /home/mkac/mav_ws/devel/share/rosserial_custom/cmake/rosserial_customConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/rosserial_custom/share/rosserial_custom/cmake/rosserial_customConfig.cmake /home/mkac/mav_ws/devel/share/rosserial_custom/cmake/rosserial_customConfig.cmake
+/home/mkac/mav_ws/devel/.private/rosserial_custom/lib/pkgconfig/rosserial_custom.pc /home/mkac/mav_ws/devel/lib/pkgconfig/rosserial_custom.pc

@@ -1,0 +1,5 @@
+00.amr/amr
+/home/mkac/mav_ws/devel/.private/amr/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/amr/share/amr/cmake/amrConfig.cmake /home/mkac/mav_ws/devel/share/amr/cmake/amrConfig.cmake
+/home/mkac/mav_ws/devel/.private/amr/share/amr/cmake/amrConfig-version.cmake /home/mkac/mav_ws/devel/share/amr/cmake/amrConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/amr/lib/pkgconfig/amr.pc /home/mkac/mav_ws/devel/lib/pkgconfig/amr.pc

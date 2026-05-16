@@ -1,0 +1,7 @@
+agv_position_logger
+/home/mkac/mav_ws/devel/.private/agv_position_logger/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/agv_position_logger/share/agv_position_logger/cmake/agv_position_loggerConfig.cmake /home/mkac/mav_ws/devel/share/agv_position_logger/cmake/agv_position_loggerConfig.cmake
+/home/mkac/mav_ws/devel/.private/agv_position_logger/share/agv_position_logger/cmake/agv_position_loggerConfig-version.cmake /home/mkac/mav_ws/devel/share/agv_position_logger/cmake/agv_position_loggerConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/agv_position_logger/lib/pkgconfig/agv_position_logger.pc /home/mkac/mav_ws/devel/lib/pkgconfig/agv_position_logger.pc
+/home/mkac/mav_ws/devel/.private/agv_position_logger/lib/agv_position_logger/cmake.lock /home/mkac/mav_ws/devel/lib/agv_position_logger/cmake.lock
+/home/mkac/mav_ws/devel/.private/agv_position_logger/lib/agv_position_logger/logger.py /home/mkac/mav_ws/devel/lib/agv_position_logger/logger.py

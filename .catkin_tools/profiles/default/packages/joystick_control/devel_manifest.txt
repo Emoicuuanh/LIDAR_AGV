@@ -1,0 +1,5 @@
+joystick_control
+/home/mkac/mav_ws/devel/.private/joystick_control/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/joystick_control/share/joystick_control/cmake/joystick_controlConfig-version.cmake /home/mkac/mav_ws/devel/share/joystick_control/cmake/joystick_controlConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/joystick_control/share/joystick_control/cmake/joystick_controlConfig.cmake /home/mkac/mav_ws/devel/share/joystick_control/cmake/joystick_controlConfig.cmake
+/home/mkac/mav_ws/devel/.private/joystick_control/lib/pkgconfig/joystick_control.pc /home/mkac/mav_ws/devel/lib/pkgconfig/joystick_control.pc

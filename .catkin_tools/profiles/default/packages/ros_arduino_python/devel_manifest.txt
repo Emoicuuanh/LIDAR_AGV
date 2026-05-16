@@ -1,0 +1,6 @@
+ros_arduino_bridge/ros_arduino_python
+/home/mkac/mav_ws/devel/.private/ros_arduino_python/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/ros_arduino_python/share/ros_arduino_python/cmake/ros_arduino_pythonConfig.cmake /home/mkac/mav_ws/devel/share/ros_arduino_python/cmake/ros_arduino_pythonConfig.cmake
+/home/mkac/mav_ws/devel/.private/ros_arduino_python/share/ros_arduino_python/cmake/ros_arduino_pythonConfig-version.cmake /home/mkac/mav_ws/devel/share/ros_arduino_python/cmake/ros_arduino_pythonConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/ros_arduino_python/lib/pkgconfig/ros_arduino_python.pc /home/mkac/mav_ws/devel/lib/pkgconfig/ros_arduino_python.pc
+/home/mkac/mav_ws/devel/.private/ros_arduino_python/lib/python3/dist-packages/ros_arduino_python/__init__.py /home/mkac/mav_ws/devel/lib/python3/dist-packages/ros_arduino_python/__init__.py

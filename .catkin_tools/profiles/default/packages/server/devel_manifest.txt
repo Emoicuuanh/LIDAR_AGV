@@ -1,0 +1,7 @@
+traffic_control/traffic_control/server
+/home/mkac/mav_ws/devel/.private/server/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/server/share/server/cmake/serverConfig.cmake /home/mkac/mav_ws/devel/share/server/cmake/serverConfig.cmake
+/home/mkac/mav_ws/devel/.private/server/share/server/cmake/serverConfig-version.cmake /home/mkac/mav_ws/devel/share/server/cmake/serverConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/server/lib/pkgconfig/server.pc /home/mkac/mav_ws/devel/lib/pkgconfig/server.pc
+/home/mkac/mav_ws/devel/.private/server/lib/server/client_agv /home/mkac/mav_ws/devel/lib/server/client_agv
+/home/mkac/mav_ws/devel/.private/server/lib/server/server_traffic_control /home/mkac/mav_ws/devel/lib/server/server_traffic_control

@@ -1,0 +1,5 @@
+docking_charger
+/home/mkac/mav_ws/devel/.private/docking_charger/cmake.lock /home/mkac/mav_ws/devel/./cmake.lock
+/home/mkac/mav_ws/devel/.private/docking_charger/share/docking_charger/cmake/docking_chargerConfig-version.cmake /home/mkac/mav_ws/devel/share/docking_charger/cmake/docking_chargerConfig-version.cmake
+/home/mkac/mav_ws/devel/.private/docking_charger/share/docking_charger/cmake/docking_chargerConfig.cmake /home/mkac/mav_ws/devel/share/docking_charger/cmake/docking_chargerConfig.cmake
+/home/mkac/mav_ws/devel/.private/docking_charger/lib/pkgconfig/docking_charger.pc /home/mkac/mav_ws/devel/lib/pkgconfig/docking_charger.pc
