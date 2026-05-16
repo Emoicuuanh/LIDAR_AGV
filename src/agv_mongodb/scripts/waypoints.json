@@ -1,0 +1,286 @@
+[
+    {
+        "_id": {
+            "$oid": "684f83062f3eaa7e4fe51d2d"
+        },
+        "map": "Carto",
+        "name": "6",
+        "next": [
+            "5"
+        ],
+        "position": {
+            "display": {},
+            "next_points": {
+                "5": {
+                    "cubic_end_ctrl": {
+                        "x": 6.9028091428881915,
+                        "y": -6.300531562650774
+                    },
+                    "cubic_start_ctrl": {
+                        "x": 5.443498917253783,
+                        "y": -6.823174956696902
+                    },
+                    "path_type": "laser"
+                }
+            },
+            "orientation": {
+                "w": 0.8315693140029907,
+                "x": 0.0,
+                "y": 0.0,
+                "z": -0.555420994758606
+            },
+            "position": {
+                "x": 3.899793988764411,
+                "y": -6.119899159875339,
+                "z": 0.0
+            },
+            "properties": {
+                "cubic": 1
+            },
+            "radius": 0.9606057571125645,
+            "route": {
+                "cubic_end_ctrl": {
+                    "x": 6.9028091428881915,
+                    "y": -6.300531562650774
+                },
+                "cubic_start_ctrl": {
+                    "x": 5.443498917253783,
+                    "y": -6.823174956696902
+                },
+                "from_is_cubic": 1,
+                "from_path_type": "laser",
+                "from_point_name": "6",
+                "to_is_cubic": 1,
+                "to_path_type": "laser",
+                "to_point_name": "5"
+            }
+        },
+        "type": "position"
+    },
+    {
+        "_id": {
+            "$oid": "684f83062f3eaa7e4fe51d2c"
+        },
+        "map": "Carto",
+        "name": "5",
+        "next": [
+            "4"
+        ],
+        "position": {
+            "display": {},
+            "next_points": {
+                "4": {
+                    "cubic_end_ctrl": {
+                        "x": 8.868992166715685,
+                        "y": -3.7879829173907966
+                    },
+                    "cubic_start_ctrl": {
+                        "x": 8.689071282639487,
+                        "y": -4.492021159428093
+                    },
+                    "path_type": "laser"
+                }
+            },
+            "orientation": {
+                "w": 0.7496781945228577,
+                "x": 0.0,
+                "y": 0.0,
+                "z": -0.6618025898933411
+            },
+            "position": {
+                "x": 8.097154499784587,
+                "y": -5.126928106187594
+            },
+            "properties": {
+                "cubic": 1
+            },
+            "radius": 1.22947087888612,
+            "route": {
+                "cubic_end_ctrl": {
+                    "x": 8.868992166715685,
+                    "y": -3.7879829173907966
+                },
+                "cubic_start_ctrl": {
+                    "x": 8.689071282639487,
+                    "y": -4.492021159428093
+                },
+                "from_is_cubic": 1,
+                "from_path_type": "laser",
+                "from_point_name": "5",
+                "to_is_cubic": 1,
+                "to_path_type": "laser",
+                "to_point_name": "4"
+            }
+        },
+        "type": "position"
+    },
+    {
+        "_id": {
+            "$oid": "684f83062f3eaa7e4fe51d2b"
+        },
+        "map": "Carto",
+        "name": "4",
+        "next": [
+            "3"
+        ],
+        "position": {
+            "display": {},
+            "next_points": {
+                "3": {
+                    "cubic_end_ctrl": {
+                        "x": 8.257267182425688,
+                        "y": 0.36615561282088865
+                    },
+                    "cubic_start_ctrl": {
+                        "x": 9.056792844442157,
+                        "y": -1.2185274153919168
+                    },
+                    "path_type": "qr"
+                }
+            },
+            "orientation": {
+                "w": 0.9617438912391663,
+                "x": 0.0,
+                "y": 0.0,
+                "z": -0.27395009994506836
+            },
+            "position": {
+                "x": 8.91234577109802,
+                "y": -3.0717257787265195,
+                "z": 0.0
+            },
+            "properties": {
+                "cubic": 1
+            },
+            "radius": 1.2159197050523582,
+            "route": {
+                "cubic_end_ctrl": {
+                    "x": 8.257267182425688,
+                    "y": 0.36615561282088865
+                },
+                "cubic_start_ctrl": {
+                    "x": 9.056792844442157,
+                    "y": -1.2185274153919168
+                },
+                "from_is_cubic": 1,
+                "from_path_type": "laser",
+                "from_point_name": "4",
+                "to_is_cubic": 1,
+                "to_path_type": "qr",
+                "to_point_name": "3"
+            }
+        },
+        "type": "position"
+    },
+    {
+        "_id": {
+            "$oid": "684f83062f3eaa7e4fe51d2a"
+        },
+        "map": "Carto",
+        "name": "3",
+        "next": [
+            "1",
+            "2"
+        ],
+        "position": {
+            "display": {},
+            "next_points": {
+                "1": {
+                    "cubic_end_ctrl": {
+                        "x": -3.2114229530496576,
+                        "y": 3.873789493801907
+                    },
+                    "cubic_start_ctrl": {
+                        "x": 3.0290874241440293,
+                        "y": 3.9535280048970396
+                    },
+                    "path_type": "laser"
+                },
+                "2": {
+                    "cubic_end_ctrl": {
+                        "x": -1.8580371068834127,
+                        "y": -3.205704427112842
+                    },
+                    "cubic_start_ctrl": {
+                        "x": 3.4480424034570434,
+                        "y": 3.364802541010876
+                    },
+                    "path_type": "qr"
+                }
+            },
+            "orientation": {
+                "w": 0.9223536849021912,
+                "x": 0,
+                "y": 0,
+                "z": -0.3863465189933777
+            },
+            "position": {
+                "x": 6.565330085823306,
+                "y": 1.653597888796175
+            },
+            "properties": {
+                "cubic": 1
+            },
+            "radius": 2.0624843316867323,
+            "route": {
+                "cubic_end_ctrl": {
+                    "x": -1.8580371068834127,
+                    "y": -3.205704427112842
+                },
+                "cubic_start_ctrl": {
+                    "x": 3.4480424034570434,
+                    "y": 3.364802541010876
+                },
+                "from_is_cubic": 1,
+                "from_path_type": "qr",
+                "from_point_name": "3",
+                "to_is_cubic": 1,
+                "to_path_type": "qr",
+                "to_point_name": "2"
+            }
+        },
+        "type": "position"
+    },
+    {
+        "_id": {
+            "$oid": "684f83062f3eaa7e4fe51d28"
+        },
+        "map": "Carto",
+        "name": "2",
+        "next": [
+            "3"
+        ],
+        "position": {
+            "display": {},
+            "next_points": {
+                "3": {
+                    "cubic_end_ctrl": {
+                        "x": 8.943269670808377,
+                        "y": 0.018426942408679283
+                    },
+                    "cubic_start_ctrl": {
+                        "x": 5.823663331513092,
+                        "y": -3.2777608877901105
+                    },
+                    "path_type": "laser"
+                }
+            },
+            "orientation": {
+                "w": 0.0,
+                "x": 0.0,
+                "y": 0.0,
+                "z": 0.0
+            },
+            "position": {
+                "x": 1.4838343459279408,
+                "y": -3.207200151222022
+            },
+            "properties": {
+                "cubic": 1
+            },
+            "radius": 1.0,
+            "route": null
+        },
+        "type": "position"
+    }
+]

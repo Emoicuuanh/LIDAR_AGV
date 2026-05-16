@@ -1,0 +1,13 @@
+encoder_resolution: 52800 # = resolution_encoder * gear_reduction
+
+wheel_radius: 0.10024  # calib: 0.1 * mean(actual/odom) = 0.1 * 1.002402
+# wheel_separation calibration formula:
+# If under-rotating: new_ws = old_ws * (target_angle / actual_angle)
+# If over-rotating: new_ws = old_ws * (target_angle / actual_angle)
+# Example: 359° actual for 360° target → new_ws = old * (360/359)
+wheel_separation: 0.486  # calib: increased to fix 1° under-rotation (was 0.4845)
+
+kalman_q_linear: 0.05
+kalman_r_linear: 0.1
+kalman_q_angular: 0.05
+kalman_r_angular: 0.1
