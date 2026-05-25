@@ -1737,6 +1737,35 @@ class MovingControl(object):
                 rospy.logwarn(
                         "Current goal send to move base: {}".format(_current_goal)
                     )
+                # Khi chỉ có 1 waypoint: kiểm tra khoảng cách để quyết định di chuyển hay chỉ xoay
+                if total_point == 1:
+                    dist_to_goal = distance_two_pose(self.robot_pose, _current_goal)
+                    rospy.logwarn(
+                        "Single waypoint mode: distance to goal = {:.4f}m (threshold=0.05m)".format(
+                            dist_to_goal
+                        )
+                    )
+                    if dist_to_goal <= 0.05:
+                        # Robot đã đủ gần điểm → chỉ xoay tại chỗ, override XY về vị trí robot
+                        rospy.logwarn(
+                            "Robot within 5cm of single waypoint -> rotation only"
+                        )
+                        _current_goal = copy.deepcopy(_current_goal)
+                        _current_goal.position.x = self.robot_pose.position.x
+                        _current_goal.position.y = self.robot_pose.position.y
+                    else:
+                        # Cần di chuyển đến điểm: thêm vị trí hiện tại của robot vào đầu path để local/global planner vẽ đường đi
+                        rospy.logwarn(
+                            "Robot outside 5cm of single waypoint -> prepending robot pose to path to allow translation"
+                        )
+                        robot_wp = WaypointGlobal()
+                        pose_stamped = PoseStamped()
+                        pose_stamped.header.frame_id = frame_id
+                        pose_stamped.header.stamp = rospy.Time.now()
+                        pose_stamped.pose = copy.deepcopy(self.robot_pose)
+                        robot_wp.Pose = pose_stamped
+                        robot_wp.radius = 0.0
+                        self.list_wp_create_path.insert(0, robot_wp)
                 # set huong di chuyen tu server
                 # Hiện tại mặc định là tự chọn chiều nếu có 2 wp liên tiếp là revese thì sẽ cho đi ngược tại path đó
                 self.direction_move = 0
